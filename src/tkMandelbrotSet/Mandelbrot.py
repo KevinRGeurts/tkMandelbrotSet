@@ -8,7 +8,7 @@ class MandelbrotSet:
     """
     
     """
-    def __init__(self, ul_corner=complex(real=-2.0, imag=-2.0), lr_corner=complex(real=2.0, imag=2.0),
+    def __init__(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=2.0, imag=-2.0),
                  pts_real=500, pts_imag=500, z_max=2.0, max_iters=50):
         """
         Initializes the MandelbrotSet object with the specified parameters.
@@ -19,6 +19,12 @@ class MandelbrotSet:
         :parameter z_max: The maximum value of z to be considered for divergence, float
         :parameter max_iters: The maximum number of iterations to be performed for each point in the complex plane, integer
         """
+        assert(max_iters>1)
+        assert(z_max>0)
+        assert(pts_real>0)
+        assert(pts_imag>0)
+        assert(lr_corner.real>ul_corner.real)
+        assert(lr_corner.imag<ul_corner.imag)
         self._ul_corner = ul_corner
         self._lr_corner = lr_corner
         self._pts_real = pts_real

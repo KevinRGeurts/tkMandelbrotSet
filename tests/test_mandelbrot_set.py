@@ -9,14 +9,21 @@ from tkMandelbrotSet.mandelbrot import MandelbrotSet
 class Test_MandelbrotSet(unittest.TestCase):
     def test_init_property_getters(self):
         ms = MandelbrotSet()
-        self.assertEqual(ms.ul_corner, complex(real=-2.0, imag=-2.0))
-        self.assertEqual(ms.lr_corner, complex(real=2.0, imag=2.0))
+        self.assertEqual(ms.ul_corner, complex(real=-2.0, imag=2.0))
+        self.assertEqual(ms.lr_corner, complex(real=2.0, imag=-2.0))
         self.assertEqual(ms.pts_real, 500)
         self.assertEqual(ms.pts_imag, 500)
         self.assertEqual(ms._z_max, 2.0)
         self.assertEqual(ms._max_iters, 50)
         self.assertEqual(len(ms._mandelbrot_set), 500)
         self.assertTrue(all(type(row)==array for row in ms._mandelbrot_set))
+
+    def test_get_iter_value(self):
+        exp_val = 19
+        ms = MandelbrotSet()
+        ms._mandelbrot_set[0].append(exp_val)
+        act_val = ms.get_iter_value(0,0)
+        self.assertEqual(exp_val, act_val)
 
     def test_point_iterator_max_iters(self):
         pnt = complex(real=0.1, imag=0.1)
