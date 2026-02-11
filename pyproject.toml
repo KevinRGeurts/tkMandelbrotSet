@@ -1,0 +1,36 @@
+[build-system]
+requires = ["pdm-backend >= 2.4.0"]
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+includes = ["src/tkMandelbrotSet/*.py"]
+source-includes = ["tests/", "src/tkMandelbrotSet/Mandelbrot.sln", "src/tkMandelbrotSet/Mandelbrot.pyproj"]
+
+[project]
+name = "tkMandelbrotSet"
+version = "0.1.0"
+dependencies = [
+]
+authors = [
+  { name="Kevin R. Geurts", email="kevin.r.geurts@gmail.com" },
+]
+description = "The tkMandelbrotSet package provides a tkinter application for visualizing and interacting with the Mandelbrot set."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Development Status :: 4 - Beta",
+  "Environment :: Win32 (MS Windows)",
+  "Environment :: X11 Applications",
+  "Intended Audience :: End Users/Desktop",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering"
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+keywords = ["desktop", "GUI", "mandelbrot", "fractal"]
+
+[project.urls]
+Homepage = "https://github.com/KevinRGeurts/tkMandelbrotSet"
+Issues = "https://github.com/KevinRGeurts/tkMandelbrotSet/issues"
