@@ -11,8 +11,8 @@ yet implemented.
 
 ## Requirements
 - UserResponseCollector>=1.1.0: [GitHub](https://github.com/KevinRGeurts/UserResponseCollector), [PyPi](https://pypi.org/project/UserResponseCollector/)
-- matplotlib>=3.10.8
-- 
+- matplotlib>=3.10.8: [GitHub](https://github.com/matplotlib/matplotlib), [PyPi](https://pypi.org/project/matplotlib/)
+
 ## Usage
 To generate and visualize the Mandelbrot set:
 ```
