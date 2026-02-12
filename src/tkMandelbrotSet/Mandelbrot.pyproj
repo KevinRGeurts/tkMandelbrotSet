@@ -4,16 +4,16 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2a890610-da39-41c4-9a72-635bd23910ed</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>mandelbrot.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>..\..\tests</SearchPath>
-    <WorkingDirectory>..\..tests</WorkingDirectory>
+    <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Mandelbrot</Name>
     <RootNamespace>Mandelbrot</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
     <UnitTestPattern>test*.py</UnitTestPattern>
-    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <UnitTestRootDirectory>..\..\tests</UnitTestRootDirectory>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -25,6 +25,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="main.py" />
     <Compile Include="mandelbrot.py" />
   </ItemGroup>
   <ItemGroup>

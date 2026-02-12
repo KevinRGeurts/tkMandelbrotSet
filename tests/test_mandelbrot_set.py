@@ -25,6 +25,13 @@ class Test_MandelbrotSet(unittest.TestCase):
         act_val = ms.get_iter_value(0,0)
         self.assertEqual(exp_val, act_val)
 
+    def test_get_iter_value_with_ri(self):
+        exp_val = (19,-2.0,2.0)
+        ms = MandelbrotSet()
+        ms._mandelbrot_set[0].append(exp_val[0])
+        act_val = ms.get_iter_value_with_ri(0,0)
+        self.assertTupleEqual(exp_val, act_val)
+
     def test_point_iterator_max_iters(self):
         pnt = complex(real=0.1, imag=0.1)
         ms = MandelbrotSet()
@@ -48,6 +55,28 @@ class Test_MandelbrotSet(unittest.TestCase):
         exp_val = (3, 5, 3, 5, 50)
         act_val = (ms.get_iter_value(0,0), ms.get_iter_value(4,0), ms.get_iter_value(0,4), ms.get_iter_value(4,4), ms.get_iter_value(2,2))
         self.assertTupleEqual(exp_val, act_val)
+
+    def test_getitem(self):
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        ms = MandelbrotSet(ulc,lrc,2,2)
+        ms.generate_mandelbrot_set()
+        # Order in exp_value is [ul, ll, ur, lr]
+        exp_val = [(3, -1.8, 0.1), (3, -1.8, -0.1,), (5, -1.6, 0.1), (5, -1.6, -0.1)]
+        act_val = [ms[0], ms[1], ms[2], ms[3]]
+        self.assertListEqual(exp_val, act_val)
+
+    def test_iteration(self):
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        # Order in exp_value is [ul, ll, ur, lr]
+        exp_val = [(3, -1.8, 0.1), (3, -1.8, -0.1,), (5, -1.6, 0.1), (5, -1.6, -0.1)]
+        ms = MandelbrotSet(ulc,lrc,2,2)
+        ms.generate_mandelbrot_set()
+        act_val=[]
+        for pnt in ms:
+            act_val.append(pnt)
+        self.assertListEqual(exp_val, act_val)
 
 
 if __name__ == '__main__':
