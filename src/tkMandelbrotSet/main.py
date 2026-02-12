@@ -20,6 +20,9 @@ Exported exceptions:
 from array import array
 import timeit
 
+# PyPi package imports
+import matplotlib.pyplot as plt
+
 # local imports
 from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askForPathSave, askForPathSave, askForStr, askForMenuSelection
 from RheologyNetworkModelSimulator.qplot import TextPlot
@@ -72,6 +75,53 @@ def generate_for_text_plot():
 
     return None
 
+def generate_for_heat_map():
+    """
+    Generate a Mandelbrot set and make a heat map using Matplotlib.
+    """
+    
+    # Collect from user required inputs
+    ulr = askForFloat('Enter the upper-left corner real value (suggest -2.0)')
+    uli = askForFloat('Enter the upper-left corner imaginary value (suggest 2.0)')
+    lrr = askForFloat('Enter the lower-right corner real value (suggest 1.0)')
+    lri = askForFloat('Enter the lower-right corner imaginary value (suggest -2.0)')
+    nr = askForInt('Enter the number of points per real side (suggest 500)', minimum=2)
+    ni = askForInt('Enter the number of points per imaginary side (suggest 500)', minimum=2)
+
+    
+    # Generate the Mandelbrot set
+    ms = MandelbrotSet(complex(ulr,uli),complex(lrr,lri),nr,ni)
+    ms.generate_mandelbrot_set()
+
+    # Set up the axes data for plotting
+    _x=[]
+    for i in range(nr):
+        _x.append(ms._indices_to_point(i,0).real)
+    _y=[]
+    for j in range(ni):
+        _y.append(ms._indices_to_point(0,j).imag)
+    
+    # Obtain the mandelbrot set values, and package them for plotting
+    _z=[]
+    for j in range(ni):
+        _z.append([])
+        for i in range(nr):
+            pnt_res = ms.get_iter_value_with_ri(i,j)
+            _z[j].append(pnt_res[0])
+
+    # Create the plot for visualizing the set
+    ax=plt.axes()
+    ax.set_aspect("equal")
+    graph = ax.pcolormesh(_x, _y, _z, cmap="nipy_spectral")
+    plt.colorbar(graph)
+    plt.xlabel("Real-Axis")
+    plt.ylabel("Imaginary-Axis")
+
+    # Show the plot
+    plt.show()
+
+    return None
+
 
 def time_set_generation():
     """
@@ -98,7 +148,7 @@ if __name__ == '__main__':
     
     # Build a query for the user to obtain their choice of how to user the simulator
     query_preface = 'How do you want to generate a Mandelbrot set?'
-    query_dic = {'q':'Quit', '1':'Generate for text plot', '2':'Time set generation', 'd':'Debug Scenario'}
+    query_dic = {'q':'Quit', '1':'Generate for text plot', '2':'Time set generation', '3':'Generate for heat map', 'd':'Debug Scenario'}
     response = askForMenuSelection(query_preface, query_dic)
     
     while response != 'q':
@@ -110,6 +160,9 @@ if __name__ == '__main__':
 
             case '2':
                 time_set_generation()
+
+            case '3':
+                generate_for_heat_map()
                                 
             case 'd':
                 debug()

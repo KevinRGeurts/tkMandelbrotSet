@@ -21,7 +21,7 @@ class MandelbrotSet:
     """
     
     """
-    def __init__(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=2.0, imag=-2.0),
+    def __init__(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0),
                  pts_real=500, pts_imag=500, z_max=2.0, max_iters=50):
         """
         Initializes the MandelbrotSet object with the specified parameters.

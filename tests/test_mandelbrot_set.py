@@ -10,7 +10,7 @@ class Test_MandelbrotSet(unittest.TestCase):
     def test_init_property_getters(self):
         ms = MandelbrotSet()
         self.assertEqual(ms.ul_corner, complex(real=-2.0, imag=2.0))
-        self.assertEqual(ms.lr_corner, complex(real=2.0, imag=-2.0))
+        self.assertEqual(ms.lr_corner, complex(real=1.0, imag=-2.0))
         self.assertEqual(ms.pts_real, 500)
         self.assertEqual(ms.pts_imag, 500)
         self.assertEqual(ms._z_max, 2.0)
