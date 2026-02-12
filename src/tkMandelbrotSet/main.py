@@ -8,6 +8,7 @@ Exported classes:
 Exported functions:
     __main__: Requests how user wishes to generate a Mandelbrot set
     generate_for_text_plot: Gather input, generate a Mandelbrot set, create and print a TextPlot of the set
+    time_set_generation: Gather input, and time how long it takes to generate a Mandelbrot set
     debug: Run a debugging scenario (currently does nothing).
 
 Exported exceptions:

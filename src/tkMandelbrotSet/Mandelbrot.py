@@ -50,49 +50,52 @@ class MandelbrotSet:
         self._mandelbrot_set = []
         for i in range(pts_real):
             self._mandelbrot_set.append(array('i'))
+        # Flag indicating if generate_mandelbrot_set() method has been called, and thus if results are available.
+        self._set_generated = False
 
     @property
     def ul_corner(self):
         """
-        Returns the upper left corner of the complex plane to be visualized.
+        Returns the upper left corner of the complex plane to be visualized, as complex.
         """
         return self._ul_corner
 
     @property
     def lr_corner(self):
         """
-        Returns the lower right corner of the complex plane to be visualized.
+        Returns the lower right corner of the complex plane to be visualized, as complex.
         """
         return self._lr_corner
 
     @property
     def pts_real(self):
         """
-        Returns the number of points to be calculated along the real axis.
+        Returns the number of points to be calculated along the real axis, as integer.
         """
         return self._pts_real
 
     @property
     def pts_imag(self):
         """
-        Returns the number of points to be calculated along the imaginary axis.
+        Returns the number of points to be calculated along the imaginary axis, as integer.
         """
         return self._pts_imag
 
     @property
     def z_max(self):
         """
-        Returns the maximum value of z to be considered for divergence.
+        Returns the maximum value of z to be considered for divergence, as integer.
         """
         return self._z_max
 
     @property
     def max_iters(self):
         """
-        Returns the maximum number of iterations to be performed for each point in the complex plane.
+        Returns the maximum number of iterations to be performed for each point in the complex plane, as integer.
         """
         return self._max_iters
 
+    # TODO: Would a better behavior if the set has not been generated to just go ahead and generate the whole set?
     def get_iter_value(self, real_index, imag_index):
         """
         Returns the number of iterations it took for the point at (real_index, img_index) to diverge.
@@ -104,7 +107,13 @@ class MandelbrotSet:
         assert(real_index < self.pts_real)
         assert(imag_index >= 0)
         assert(imag_index < self.pts_imag)
-        return self._mandelbrot_set[real_index][imag_index]
+        result = 0
+        if self._set_generated:
+            result = self._mandelbrot_set[real_index][imag_index]
+        else:
+            result = self._point_iterator(complex())
+        return result
+            
 
     def get_iter_value_with_ri(self, real_index, imag_index):
         """
@@ -118,26 +127,44 @@ class MandelbrotSet:
         assert(real_index < self.pts_real)
         assert(imag_index >= 0)
         assert(imag_index < self.pts_imag)
-        real = self._ul_corner.real + real_index * (self._lr_corner.real - self._ul_corner.real) / (self._pts_real-1)
-        imag=self._ul_corner.imag + imag_index * (self._lr_corner.imag - self._ul_corner.imag) / (self._pts_imag-1)
-        return (self._mandelbrot_set[real_index][imag_index], real, imag)
+        c = self._indices_to_point(real_index, imag_index)
+        return (self.get_iter_value(real_index, imag_index), c.real, c.imag)
 
     def generate_mandelbrot_set(self):
         """
         Generates the Mandelbrot set and stores it in the _mandelbrot_set attribute.
+        :return: None
         """
         for i in range(self._pts_real):
             # print(f"generating set for real index {i}")
             for j in range(self._pts_imag):
-                c = complex(real=self._ul_corner.real + i * (self._lr_corner.real - self._ul_corner.real) / (self._pts_real-1),
-                            imag=self._ul_corner.imag + j * (self._lr_corner.imag - self._ul_corner.imag) / (self._pts_imag-1))
+                c = self._indices_to_point(i,j)
                 self._mandelbrot_set[i].append(self._point_iterator(c))
                 # print(f"i={i}, j={j}, c={str(c)}, iters={self._mandelbrot_set[i][j]}")
+        self._set_generated = True
+        return None
 
+    def _indices_to_point(self, real_index, imag_index):
+        """
+        Given a real index value and an imaginary index value, return the complex number that corresponds to that
+        set of indices.
+        :parameter real_index: The index of the point along the real axis, integer
+        :parameter imag_index: The index of the point along the imaginary axis, integer
+        :return: Complex number corresponding to the indices, as complex
+        """
+        assert(real_index >= 0)
+        assert(real_index < self.pts_real)
+        assert(imag_index >= 0)
+        assert(imag_index < self.pts_imag)
+        c = complex(real=self._ul_corner.real + real_index * (self._lr_corner.real - self._ul_corner.real) / (self._pts_real-1),
+                    imag=self._ul_corner.imag + imag_index * (self._lr_corner.imag - self._ul_corner.imag) / (self._pts_imag-1))
+        return c
+    
     def _point_iterator(self, c):
         """
         Returns the number of iterations it takes for the (complex plane) point c to diverge.
         :parameter c: The point in the complex plane to be evaluated, complex
+        :return: Number of iterations it took for point c to diverge, integer
         """
         z = complex(real=0.0, imag=0.0)
         for i in range(self._max_iters):
@@ -150,7 +177,7 @@ class MandelbrotSet:
     # Required so that for loops work
     def __len__(self):
         """
-        Return the total number of points in the Mandelbrot set.
+        Return the total number of points in the Mandelbrot set, as integer.
         """
         return self.pts_real*self.pts_imag
 
@@ -162,8 +189,9 @@ class MandelbrotSet:
         first real value, and then the real value will be incremented to the next value.
         :return: Tuple (iterarions to diverge, real-axis coordinate, imaginary-axis coordinate), as (integer, float, float)
         """
+        if type(subscript)!=int: raise TypeError
         if subscript > (len(self)-1): raise IndexError
         real_index = floor(subscript/self.pts_real)
         imag_index = subscript - (real_index * self.pts_real)
-        print(f"subscript: {subscript}, real index: {real_index}, imag index: {imag_index}")
+        # print(f"subscript: {subscript}, real index: {real_index}, imag index: {imag_index}")
         return self.get_iter_value_with_ri(real_index, imag_index)
