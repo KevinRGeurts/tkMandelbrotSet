@@ -16,8 +16,11 @@ Exported exceptions:
 from array import array
 from math import floor
 
+# package imports
+from tkAppFramework.model import Model
 
-class MandelbrotSet:
+
+class MandelbrotSet(Model):
     """
     
     """
@@ -32,6 +35,7 @@ class MandelbrotSet:
         :parameter z_max: The maximum value of z to be considered for divergence, float
         :parameter max_iters: The maximum number of iterations to be performed for each point in the complex plane, integer
         """
+        super().__init__()
         assert(max_iters>1)
         assert(z_max>0)
         assert(pts_real>0)
@@ -60,12 +64,32 @@ class MandelbrotSet:
         """
         return self._ul_corner
 
+    @ul_corner.setter
+    def ul_corner(self, value):
+        """
+        :parameter value: as complex
+        """
+        assert(type(value)==complex)
+        self._ul_corner = value
+        self._set_generated = False
+        self.notify()
+
     @property
     def lr_corner(self):
         """
         Returns the lower right corner of the complex plane to be visualized, as complex.
         """
         return self._lr_corner
+
+    @lr_corner.setter
+    def lr_corner(self, value):
+        """
+        :parameter value: as complex
+        """
+        assert(type(value)==complex)
+        self._lr_corner = value
+        self._set_generated = False
+        self.notify()
 
     @property
     def pts_real(self):
@@ -135,13 +159,16 @@ class MandelbrotSet:
         Generates the Mandelbrot set and stores it in the _mandelbrot_set attribute.
         :return: None
         """
-        for i in range(self._pts_real):
-            # print(f"generating set for real index {i}")
-            for j in range(self._pts_imag):
-                c = self._indices_to_point(i,j)
-                self._mandelbrot_set[i].append(self._point_iterator(c))
-                # print(f"i={i}, j={j}, c={str(c)}, iters={self._mandelbrot_set[i][j]}")
-        self._set_generated = True
+        # This if makes it "safe" (that is, no time wasted) to call the more than once without any changes to the set generating attributes.
+        # If the set has already been generated, then it won't be regenerated.
+        if not self._set_generated:
+            for i in range(self._pts_real):
+                # print(f"generating set for real index {i}")
+                for j in range(self._pts_imag):
+                    c = self._indices_to_point(i,j)
+                    self._mandelbrot_set[i].append(self._point_iterator(c))
+                    # print(f"i={i}, j={j}, c={str(c)}, iters={self._mandelbrot_set[i][j]}")
+            self._set_generated = True
         return None
 
     def _indices_to_point(self, real_index, imag_index):

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2a890610-da39-41c4-9a72-635bd23910ed</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>mandelbrot_set_app.py</StartupFile>
     <SearchPath>..\..\tests</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -27,6 +27,8 @@
   <ItemGroup>
     <Compile Include="main.py" />
     <Compile Include="mandelbrot.py" />
+    <Compile Include="mandelbrot_set_app.py" />
+    <Compile Include="view_manager.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
