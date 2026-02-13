@@ -98,6 +98,7 @@ class Test_MandelbrotSet(unittest.TestCase):
         ulc=complex(real=-1.8, imag=0.1)
         lrc=complex(real=-1.6, imag=-0.1)
         # Order in exp_value is [ul, ll, ur, lr]
+        #               i=0, j=0       i=0,   j=1         i=1, j=0       i=1,  j=1
         exp_val = [(3, -1.8, 0.1), (3, -1.8, -0.1,), (5, -1.6, 0.1), (5, -1.6, -0.1)]
         ms = MandelbrotSet(ulc,lrc,2,2)
         ms.generate_mandelbrot_set()
@@ -113,6 +114,36 @@ class Test_MandelbrotSet(unittest.TestCase):
         exp_val = [complex(-1.8, 0.1), complex(-1.8, -0.1,), complex(-1.6, 0.1), complex(-1.6, -0.1)]
         act_val = [ms._indices_to_point(0,0), ms._indices_to_point(0,1), ms._indices_to_point(1,0), ms._indices_to_point(1,1)]    
         self.assertListEqual(exp_val, act_val)
+
+    def test_get_plot_data(self):
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        ms = MandelbrotSet(ulc,lrc,2,2)
+        (act_x, act_y, act_z) = ms.get_plot_data()
+        # Check x
+        exp_val = [-1.8, -1.6]
+        self.assertListEqual(exp_val, act_x)
+        # Check y
+        exp_val = [0.1, -0.1]
+        self.assertListEqual(exp_val, act_y)
+        # Check z: [[(0,0),(1,0)],[(0,1),(1,1)]]
+        exp_val = [[3, 5],[3, 5]]
+        self.assertListEqual(exp_val, act_z)
+
+    def test_get_plot_data_invert_z_True(self):
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        ms = MandelbrotSet(ulc,lrc,2,2)
+        (act_x, act_y, act_z) = ms.get_plot_data(True)
+        # Check x
+        exp_val = [-1.8, -1.6]
+        self.assertListEqual(exp_val, act_x)
+        # Check y
+        exp_val = [0.1, -0.1]
+        self.assertListEqual(exp_val, act_y)
+        # Check z: [[(0,0),(1,0)],[(0,1),(1,1)]]
+        exp_val = [[50-3, 50-5],[50-3, 50-5]]
+        self.assertListEqual(exp_val, act_z)
 
 
 if __name__ == '__main__':

@@ -93,21 +93,8 @@ def generate_for_heat_map():
     ms = MandelbrotSet(complex(ulr,uli),complex(lrr,lri),nr,ni)
     ms.generate_mandelbrot_set()
 
-    # Set up the axes data for plotting
-    _x=[]
-    for i in range(nr):
-        _x.append(ms._indices_to_point(i,0).real)
-    _y=[]
-    for j in range(ni):
-        _y.append(ms._indices_to_point(0,j).imag)
-    
-    # Obtain the mandelbrot set values, and package them for plotting
-    _z=[]
-    for j in range(ni):
-        _z.append([])
-        for i in range(nr):
-            pnt_res = ms.get_iter_value_with_ri(i,j)
-            _z[j].append(pnt_res[0])
+    # Get the plotting data
+    (_x, _y, _z) = ms.get_plot_data(True)
 
     # Create the plot for visualizing the set
     ax=plt.axes()
