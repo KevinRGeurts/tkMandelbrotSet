@@ -42,7 +42,7 @@ class Test_MandelbrotSet(unittest.TestCase):
         ulc=complex(real=-1.8, imag=0.1)
         lrc=complex(real=-1.6, imag=-0.1)
         ms = MandelbrotSet(ulc,lrc,2,2)
-        # Check that we are starting after __init__ with the expected  valrclue
+        # Check that we are starting after __init__ with the expected lrc value
         self.assertEqual(ms.lr_corner, lrc)
         # Check that the set is not generated
         self.assertFalse(ms._set_generated)
@@ -53,7 +53,30 @@ class Test_MandelbrotSet(unittest.TestCase):
         # Change the lrc
         new_lrc=complex(real=-1.5, imag=-0.2)
         ms.lr_corner=new_lrc
-        # Check that we have the expected new ulc value
+        # Check that we have the expected new lrc value
+        self.assertEqual(ms.lr_corner, new_lrc)
+        # Check that the set is again not generated
+        self.assertFalse(ms._set_generated)
+    
+    def test_set_corners(self):
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        ms = MandelbrotSet(ulc,lrc,2,2)
+        # Check that we are starting after __init__ with the expected ulc and lrc values
+        self.assertEqual(ms.ul_corner, ulc)
+        self.assertEqual(ms.lr_corner, lrc)
+        # Check that the set is not generated
+        self.assertFalse(ms._set_generated)
+        # Generate the set
+        ms.generate_mandelbrot_set()
+        # Check that the set is generated
+        self.assertTrue(ms._set_generated)
+        # Change the ulc and lrc
+        new_ulc=complex(real=-1.7, imag=0.0)
+        new_lrc=complex(real=-1.5, imag=-0.2)
+        ms.set_corners(new_ulc, new_lrc)
+        # Check that we have the expected new ulc and lrc value
+        self.assertEqual(ms.ul_corner, new_ulc)
         self.assertEqual(ms.lr_corner, new_lrc)
         # Check that the set is again not generated
         self.assertFalse(ms._set_generated)

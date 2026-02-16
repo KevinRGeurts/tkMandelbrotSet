@@ -48,7 +48,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         self._plot_widget = MandelbrotSetPlotWidget(self)
         self.register_subject(self._plot_widget, self.handle_plot_widget_update)
         self._plot_widget.attach(self)
-        self._plot_widget.get_tk_widget().grid(column=0, row=0, sticky='NWES') # Grid-2
+        self._plot_widget.grid(column=0, row=0, sticky='NWES') # Grid-2
         self.columnconfigure(0, weight=1) # Grid-2
         self.rowconfigure(0, weight=1) # Grid-2
 
@@ -83,28 +83,30 @@ class tkMandelbrotSetViewManager(tkViewManager):
         return None
 
 
-class MandelbrotSetPlotWidget(ttk.Labelframe, FigureCanvasTkAgg, Subject):
+class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
     """
-    Class represents a tkinter label frame, the widget contents of which allow the beats per minute of the metronome to be set.
+    Class represents a tkinter label frame, the widget contents of which display a matplotlib visualization of the Mandelbrot set.
     Class is also a Subject in Observer design pattern.
     """
     def __init__(self, parent) -> None:
         """
-        :parameter parent: tkinter widget that is the parent of this widget, in this case the tkMetronomeViewManager
-        :parameter bpm: An initial beats per minute setting for this widget, int
+        :parameter parent: tkinter widget that is the parent of this widget, in this case the tkMandelbrotsetViewManager
         """
         ttk.Labelframe.__init__(self, parent, text="Mandelbrot Set Visualization")
         Subject.__init__(self)
+
+        # Make a matplotlib Figure that will be added to the matplotlib FigureCanvasTkAgg below,
+        # and give it an axes.
         self._figure = Figure(figsize=(5,4), dpi=100)
         self._ax = self._figure.add_subplot()
-        self._ax.set_aspect("equal")
-        self._ax.set_xlabel("Real-Axis")
-        self._ax.set_ylabel("Imaginary-Axis")
-        self._ax.pcolormesh([-2.0, 1.0], [2.0, -2.0], [[1.0, 1.0], [1.0, 1.0]]) # dummy plot to draw below
-        # master is root
-        FigureCanvasTkAgg.__init__(self, self._figure, self.master.master.master)
-        FigureCanvasTkAgg.draw(self)
+        
+        # master is root (seems weird, so is this really necessary)
+        self._mpl_figure_canvas = FigureCanvasTkAgg(self._figure, self.master.master.master)
+        self._mpl_figure_canvas.get_tk_widget().grid(column=0, row=0, sticky='NWES') # Grid-3
+        self.columnconfigure(0, weight=1) # Grid-3
+        self.rowconfigure(0, weight=1) # Grid-3
 
+        # The corners of a zoom rectangle
         self._zoom_ulc = complex(0,0)
         self._zoom_lrc = complex(0,0)
 
@@ -124,8 +126,11 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, FigureCanvasTkAgg, Subject):
                       z[j][i] = the zth value at the jth value of the imaginary axis and the ith value of the real axis
         :return: None
         """
+        self._ax.set_aspect("equal")
+        self._ax.set_xlabel("Real-Axis")
+        self._ax.set_ylabel("Imaginary-Axis")
         graph = self._ax.pcolormesh(x, y, z, cmap="nipy_spectral")
-        # plt.colorbar(graph)
-        FigureCanvasTkAgg.draw(self)
+        self._ax.use_sticky_edges = True
+        self._mpl_figure_canvas.draw()
 
         return None

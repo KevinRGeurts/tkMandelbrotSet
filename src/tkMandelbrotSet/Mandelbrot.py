@@ -91,6 +91,24 @@ class MandelbrotSet(Model):
         self._set_generated = False
         self.notify()
 
+    def set_corners(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0)):
+        """
+        Set both corners of the complex plan to be visualized. Call this function instead of the property setters
+        for the individual corners when you want to change both corners and only want one notify() to Observers.
+        :parameter ul_corner: The upper left corner of the complex plane to be visualized, complex
+        :parameter lr_corner: The lower right corner of the complex plane to be visualized, complex
+        :return: None
+        """
+        assert(type(ul_corner)==complex)
+        assert(type(lr_corner)==complex)
+        assert(lr_corner.real>ul_corner.real)
+        assert(lr_corner.imag<ul_corner.imag)
+        self._ul_corner = ul_corner
+        self._lr_corner = lr_corner
+        self._set_generated = False
+        self.notify()
+        return None
+
     @property
     def pts_real(self):
         """
