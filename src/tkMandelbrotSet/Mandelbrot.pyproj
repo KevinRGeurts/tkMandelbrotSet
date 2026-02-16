@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2a890610-da39-41c4-9a72-635bd23910ed</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>mandelbrot_set_app.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>..\..\tests</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

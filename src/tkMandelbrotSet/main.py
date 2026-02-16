@@ -8,7 +8,10 @@ Exported classes:
 Exported functions:
     __main__: Requests how user wishes to generate a Mandelbrot set
     generate_for_text_plot: Gather input, generate a Mandelbrot set, create and print a TextPlot of the set
+    generate_for_heat_map: Gather input, generate a Mandelbrot set, create a display a matplotlip pcolormap of the set
+    launch_app: Launch MandelbrotSetApp instance, a tkinter app for displaying and interacting with the Mandelbrot set
     time_set_generation: Gather input, and time how long it takes to generate a Mandelbrot set
+
     debug: Run a debugging scenario (currently does nothing).
 
 Exported exceptions:
@@ -19,6 +22,7 @@ Exported exceptions:
 # standard imports
 from array import array
 import timeit
+import tkinter as tk
 
 # PyPi package imports
 import matplotlib.pyplot as plt
@@ -27,6 +31,7 @@ import matplotlib.pyplot as plt
 from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askForPathSave, askForPathSave, askForStr, askForMenuSelection
 from RheologyNetworkModelSimulator.qplot import TextPlot
 from tkMandelbrotSet.mandelbrot import MandelbrotSet
+from tkMandelbrotSet.mandelbrot_set_app import MandelbrotSetApp
 
 
 def debug():
@@ -110,6 +115,19 @@ def generate_for_heat_map():
     return None
 
 
+def launch_app():
+    """
+    Launch the Mandelbrot Set App.
+    """
+    # Get Tcl interpreter up and running and get the root widget
+    root = tk.Tk()
+    # Create the metronome app
+    app = MandelbrotSetApp(root)
+    # Start the metronome app's event loop running
+    app.mainloop()
+    return None
+
+
 def time_set_generation():
     """
     Time how long it takes to generate a Mandelbrot set.
@@ -135,7 +153,7 @@ if __name__ == '__main__':
     
     # Build a query for the user to obtain their choice of how to user the simulator
     query_preface = 'How do you want to generate a Mandelbrot set?'
-    query_dic = {'q':'Quit', '1':'Generate for text plot', '2':'Time set generation', '3':'Generate for heat map', 'd':'Debug Scenario'}
+    query_dic = {'q':'Quit', '1':'Generate for text plot', '2':'Time set generation', '3':'Generate for heat map', '4':'Launch Mandelbrot Set app', 'd':'Debug Scenario'}
     response = askForMenuSelection(query_preface, query_dic)
     
     while response != 'q':
@@ -150,6 +168,9 @@ if __name__ == '__main__':
 
             case '3':
                 generate_for_heat_map()
+
+            case '4':
+                launch_app()
                                 
             case 'd':
                 debug()
