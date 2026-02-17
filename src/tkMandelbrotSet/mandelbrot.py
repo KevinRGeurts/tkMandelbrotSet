@@ -48,14 +48,29 @@ class MandelbrotSet(Model):
         self._pts_imag = pts_imag
         self._z_max = z_max
         self._max_iters = max_iters
-        # The Mandelbrot set will be stored as a list of  arraya of integers, where each integer represents the
+        # The Mandelbrot set will be stored as a list of  arrays of integers, where each integer represents the
         # number of iterations it took for the corresponding point in the complex plane to diverge.
         # To access the value at point (real_index=i, imaginary_index=j): self._mandelbrot_set[i][j]
         self._mandelbrot_set = []
-        for i in range(pts_real):
+        for i in range(self.pts_real):
             self._mandelbrot_set.append(array('i'))
+        assert(len(self._mandelbrot_set)==self.pts_real)
         # Flag indicating if generate_mandelbrot_set() method has been called, and thus if results are available.
         self._set_generated = False
+
+    def _clear_mandelbrot_set_data(self):
+        """
+        Utility function called to clear Mandelbrot set data.
+        :return: None
+        """
+        for i in range(self.pts_real):
+            column = self._mandelbrot_set[i]
+            for j in range(self.pts_imag):
+                column.pop()
+            assert(len(column)==0)
+        assert(len(self._mandelbrot_set)==self.pts_real)
+        self._set_generated = False
+        return None
 
     @property
     def ul_corner(self):
@@ -71,7 +86,7 @@ class MandelbrotSet(Model):
         """
         assert(type(value)==complex)
         self._ul_corner = value
-        self._set_generated = False
+        self._clear_mandelbrot_set_data()
         self.notify()
 
     @property
@@ -88,7 +103,7 @@ class MandelbrotSet(Model):
         """
         assert(type(value)==complex)
         self._lr_corner = value
-        self._set_generated = False
+        self._clear_mandelbrot_set_data()
         self.notify()
 
     def set_corners(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0)):
@@ -105,7 +120,7 @@ class MandelbrotSet(Model):
         assert(lr_corner.imag<ul_corner.imag)
         self._ul_corner = ul_corner
         self._lr_corner = lr_corner
-        self._set_generated = False
+        self._clear_mandelbrot_set_data()
         self.notify()
         return None
 
@@ -153,7 +168,7 @@ class MandelbrotSet(Model):
         if self._set_generated:
             result = self._mandelbrot_set[real_index][imag_index]
         else:
-            result = self._point_iterator(complex())
+            result = self._point_iterator(complex(self._indices_to_point(real_index, imag_index)))
         return result
             
 

@@ -90,7 +90,7 @@ class Test_MandelbrotSet(unittest.TestCase):
         self.assertEqual(exp_val, act_val)
 
     def test_get_iter_value_set_not_generated(self):
-        exp_val = 50
+        exp_val = 0
         ms = MandelbrotSet()
         ms._mandelbrot_set[0].append(exp_val)
         act_val = ms.get_iter_value(0,0)
@@ -105,7 +105,7 @@ class Test_MandelbrotSet(unittest.TestCase):
         self.assertTupleEqual(exp_val, act_val)
 
     def test_get_iter_value_with_ri_set_not_generated(self):
-        exp_val = (50,-2.0,2.0)
+        exp_val = (0,-2.0,2.0)
         ms = MandelbrotSet()
         ms._mandelbrot_set[0].append(exp_val[0])
         act_val = ms.get_iter_value_with_ri(0,0)

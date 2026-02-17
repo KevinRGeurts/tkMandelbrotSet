@@ -72,14 +72,9 @@ class tkMandelbrotSetViewManager(tkViewManager):
         :return None:
         """
         model = self.getModel()
-        model_zoom = (model.ul_corner, model.lr_corner)
-        pw_state = self._plot_widget.get_state()
-        widget_zoom = (pw_state[0], pw_state[1])
-        # For efficiency, only update the plot widget if it's zoom value doesn't match the model value.
-        if widget_zoom != model_zoom:
-            model.generate_mandelbrot_set()
-            x, y, z = model.get_plot_data()
-            self._plot_widget.make_plot(x, y, z)
+        model.generate_mandelbrot_set()
+        x, y, z = model.get_plot_data()
+        self._plot_widget.make_plot(x, y, z)
         return None
         
     def handle_plot_widget_update(self):
@@ -135,15 +130,21 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self._ax = self._figure.add_subplot()
         
         self._mpl_figure_canvas = FigureCanvasTkAgg(self._figure, self)
-        # master is root (seems weird, so is this really necessary)
-        # self._mpl_figure_canvas = FigureCanvasTkAgg(self._figure, self.master.master.master)
         self._mpl_figure_canvas.get_tk_widget().grid(column=0, row=0, sticky='NWES') # Grid-3
         self.columnconfigure(0, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
 
-        # The corners of a zoom rectangle
-        self._zoom_ulc = complex(0,0)
-        self._zoom_lrc = complex(0,0)
+        # Hook matplotlib events so that user zoom into the plot by clicking and dragging the mouse
+        self._m_bpe_id = self._figure.canvas.mpl_connect('button_press_event', self.onMouseEvent)
+        self._m_bre_id = self._figure.canvas.mpl_connect('button_release_event', self.onMouseEvent)
+        self._m_mne_id = self._figure.canvas.mpl_connect('motion_notify_event', self.onMouseEvent)
+
+        # The corners of a zoom rectangle, should be set to complex()
+        self._zoom_ulc = None
+        self._zoom_lrc = None
+        # True if user is in the process of dragging a zoom regtangle, that is, they've clicked within the axes and initiated
+        # a zoom.
+        self._is_zooming = False
 
         # Colormap menu button
         self._mbtn_colormap = ttk.Menubutton(self, text='Colormap', takefocus=1)
@@ -172,6 +173,36 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         assert(isinstance(key, str) and key in self._colormaps)
         self._selected_colormap = key
         self.notify()
+        return None
+
+    def onMouseEvent(self, e):
+        """
+        Event handler for matplotlib mouse move events.
+        :parameter e: The matplotlib event being handled.
+        :return: None
+        """
+        # print(f"onMouseEvent: {str(e)}")
+        if e.name == 'button_press_event':
+            if e.xdata is not None and e.ydata is not None:
+                # User clicked inside the plot axes.
+                # Initiate a zoom.
+                self._zoom_ulc = complex(e.xdata, e.ydata)
+                self._zoom_lrc = None
+                self._is_zooming = True
+                print(f"Initiated zoom at: {str(self._zoom_ulc)}")
+        elif e.name == 'button_release_event':
+            if e.xdata is not None and e.ydata is not None:
+                # User released mouse button inside the plot axes.
+                if self._is_zooming:
+                    # User is completing an in prgress zoom.
+                    # Assume for now that the user has zoomed by dragging down and to the right.
+                    # TODO: Generalize by inverting corners if needed.
+                    self._zoom_lrc = complex(e.xdata, e.ydata)
+                    self._is_zooming = False
+                    print(f"Terminated zoom at: {str(self._zoom_lrc)}")
+                    self.notify()
+        # TODO: Handle 'motion_notify_event' to draw a visual zooming rectangle. 
+
         return None
 
     def get_state(self):
@@ -209,11 +240,12 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
                       z[j][i] = the zth value at the jth value of the imaginary axis and the ith value of the real axis
         :return: None
         """
+        self._ax.cla() # Clear the axes for the next time through...
         self._ax.set_aspect("equal")
         self._ax.set_xlabel("Real-Axis")
         self._ax.set_ylabel("Imaginary-Axis")
-        graph = self._ax.pcolormesh(x, y, z, cmap=self._selected_colormap)
         self._ax.use_sticky_edges = True
+        graph = self._ax.pcolormesh(x, y, z, cmap=self._selected_colormap)
         self._mpl_figure_canvas.draw()
 
         return None
