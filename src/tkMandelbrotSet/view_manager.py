@@ -21,6 +21,7 @@ from functools import partial
 # 3rd party package imports (e.g., from PyPi)
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from matplotlib.widgets import RectangleSelector
 
 # Local imports
 from tkAppFramework.tkViewManager import tkViewManager
@@ -134,17 +135,9 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self.columnconfigure(0, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
 
-        # Hook matplotlib events so that user zoom into the plot by clicking and dragging the mouse
-        self._m_bpe_id = self._figure.canvas.mpl_connect('button_press_event', self.onMouseEvent)
-        self._m_bre_id = self._figure.canvas.mpl_connect('button_release_event', self.onMouseEvent)
-        self._m_mne_id = self._figure.canvas.mpl_connect('motion_notify_event', self.onMouseEvent)
-
         # The corners of a zoom rectangle, should be set to complex()
         self._zoom_ulc = None
         self._zoom_lrc = None
-        # True if user is in the process of dragging a zoom regtangle, that is, they've clicked within the axes and initiated
-        # a zoom.
-        self._is_zooming = False
 
         # Colormap menu button
         self._mbtn_colormap = ttk.Menubutton(self, text='Colormap', takefocus=1)
@@ -162,6 +155,43 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
             self._menu_colormap.add_command(label = str(self._colormaps[key]), command = partial(self.onSelectColormap, key))
         self._selected_colormap = 'nipy_spectral'
 
+        # matplotlib RectangleSelector (for interactive zooming)
+        self._zoom_rectangle = RectangleSelector(self._ax,
+                                                 self.zoom_rectangle_callback,
+                                                 useblit=True,
+                                                 button=[1, 3],  # disable middle button
+                                                 minspanx=5,
+                                                 minspany=5,
+                                                 spancoords='pixels',
+                                                 interactive=True)
+        return None
+
+    def zoom_rectangle_callback(self, eclick, erelease):
+        """
+        Callback for zoom rectangle.
+        :parameter eclick: The matplotlib mouse button click event
+        :parameter erelease: The matplotlib mouse button release event
+        :return: None
+        """
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+        # Handle the possibility that the user dragged in different directions from the initial click 
+        if x1 < x2:
+            ulcr = x1
+            lrcr = x2
+        else:
+            ulcr = x2
+            lrcr = x1
+        if y1 > y2:
+            ulci = y1
+            lrci = y2
+        else:
+            ulci = y2
+            lrci = y1
+        self._zoom_ulc = complex(ulcr, ulci)
+        self._zoom_lrc = complex(lrcr, lrci)
+        # print(f"Zooming to upper-left-corner {self._zoom_ulc} and lower-right-corner {self._zoom_lrc}.")
+        self.notify()
         return None
 
     def onSelectColormap(self, key):
@@ -173,36 +203,6 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         assert(isinstance(key, str) and key in self._colormaps)
         self._selected_colormap = key
         self.notify()
-        return None
-
-    def onMouseEvent(self, e):
-        """
-        Event handler for matplotlib mouse move events.
-        :parameter e: The matplotlib event being handled.
-        :return: None
-        """
-        # print(f"onMouseEvent: {str(e)}")
-        if e.name == 'button_press_event':
-            if e.xdata is not None and e.ydata is not None:
-                # User clicked inside the plot axes.
-                # Initiate a zoom.
-                self._zoom_ulc = complex(e.xdata, e.ydata)
-                self._zoom_lrc = None
-                self._is_zooming = True
-                print(f"Initiated zoom at: {str(self._zoom_ulc)}")
-        elif e.name == 'button_release_event':
-            if e.xdata is not None and e.ydata is not None:
-                # User released mouse button inside the plot axes.
-                if self._is_zooming:
-                    # User is completing an in prgress zoom.
-                    # Assume for now that the user has zoomed by dragging down and to the right.
-                    # TODO: Generalize by inverting corners if needed.
-                    self._zoom_lrc = complex(e.xdata, e.ydata)
-                    self._is_zooming = False
-                    print(f"Terminated zoom at: {str(self._zoom_lrc)}")
-                    self.notify()
-        # TODO: Handle 'motion_notify_event' to draw a visual zooming rectangle. 
-
         return None
 
     def get_state(self):
@@ -279,7 +279,7 @@ class MandelbrotSetMementoWidget(ttk.Labelframe, Subject):
 
     # def onSelectMemento(self, key):
     #     """
-    #     Handle selection of a colormap from the menu.
+    #     Handle selection of a zoom memento from the listbox.
     #     :parameter key: Key of the colormap selected from the menu, string
     #     :return: None
     #     """
