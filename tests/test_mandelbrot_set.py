@@ -208,6 +208,25 @@ class Test_MandelbrotSet(unittest.TestCase):
         exp_val = [[50-3, 50-5],[50-3, 50-5]]
         self.assertListEqual(exp_val, act_z)
 
+    def test_create_memento_set_memento(self):
+        # First, test MandelbrotSet.create_memento()
+        ulc=complex(real=-1.8, imag=0.1)
+        lrc=complex(real=-1.6, imag=-0.1)
+        pr = 50
+        pi = 40
+        zmax = 3.0
+        maxi = 25
+        ms = MandelbrotSet(ulc,lrc,pr,pi,zmax,maxi)
+        exp_val = (ulc, lrc, pr, pi, zmax, maxi)
+        memento = ms.create_memento()
+        act_val = memento.get_state()
+        self.assertTupleEqual(exp_val, act_val)
+        # Second, test MandelbrotSet.set_memento()
+        ms = MandelbrotSet()
+        ms.set_memento(memento)
+        act_val = (ms.ul_corner, ms.lr_corner, ms.pts_real, ms.pts_imag, ms.z_max, ms.max_iters)
+        self.assertTupleEqual(exp_val, act_val)
+
 
 if __name__ == '__main__':
     unittest.main()

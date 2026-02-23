@@ -32,12 +32,23 @@ from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askFo
 from RheologyNetworkModelSimulator.qplot import TextPlot
 from tkMandelbrotSet.mandelbrot import MandelbrotSet
 from tkMandelbrotSet.mandelbrot_set_app import MandelbrotSetApp
+from tkMandelbrotSet.bigraph import BigraphNode
 
 
 def debug():
     """
     Run a debugging scenario.
     """
+    suc = BigraphNode(payload=1)
+    node = BigraphNode()
+    node.successor = suc
+    # Now try to add suc again, which should not happen
+    node.successor = suc
+    # Add a second, unique successor to node
+    suc2 = BigraphNode(payload=2)
+    node.successor = suc2
+    # Getter should still get the first successor added
+
     return None
 
 

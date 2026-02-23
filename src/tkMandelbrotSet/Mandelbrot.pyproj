@@ -25,9 +25,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="bigraph.py" />
     <Compile Include="main.py" />
     <Compile Include="mandelbrot.py" />
     <Compile Include="mandelbrot_set_app.py" />
+    <Compile Include="memento.py" />
     <Compile Include="view_manager.py" />
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,7 @@ from math import floor
 
 # package imports
 from tkAppFramework.model import Model
+from tkMandelbrotSet.memento import SetMemento
 
 
 class MandelbrotSet(Model):
@@ -58,18 +59,40 @@ class MandelbrotSet(Model):
         # Flag indicating if generate_mandelbrot_set() method has been called, and thus if results are available.
         self._set_generated = False
 
+    def create_memento(self):
+        """
+        Create a SetMemento object that is a snapshot of the "state" of this MandelbrotSet object.
+        :return: SetMemento object
+        """
+        memento = SetMemento(self._ul_corner, self._lr_corner, self._pts_real, self._pts_imag, self._z_max, self._max_iters)
+        return memento
+
+    def set_memento(self, memento=SetMemento()):
+        """
+        Use the argument memento to restore the "state" of the MandelbrotSet object to the snapshot stored by the memento.
+        :return: None
+        """
+        state = memento.get_state()
+        self.set_corners(state[0], state[1])
+        self._pts_real = state[2]
+        self._pts_imag = state[3]
+        self._z_max = state[4]
+        self._max_iters = state[5]
+        return None
+
     def _clear_mandelbrot_set_data(self):
         """
         Utility function called to clear Mandelbrot set data.
         :return: None
         """
-        for i in range(self.pts_real):
-            column = self._mandelbrot_set[i]
-            for j in range(self.pts_imag):
-                column.pop()
-            assert(len(column)==0)
-        assert(len(self._mandelbrot_set)==self.pts_real)
-        self._set_generated = False
+        if self._set_generated:
+            for i in range(self.pts_real):
+                column = self._mandelbrot_set[i]
+                for j in range(self.pts_imag):
+                    column.pop()
+                assert(len(column)==0)
+            assert(len(self._mandelbrot_set)==self.pts_real)
+            self._set_generated = False
         return None
 
     @property
