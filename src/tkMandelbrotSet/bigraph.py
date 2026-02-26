@@ -52,7 +52,7 @@ class BigraphNode(object):
         """
         if value is not None:
             assert(isinstance(value, BigraphNode))
-            assert(id(value)!=id(self))
+            assert(id(value)!=id(self)) # So we never get a loop
         self._predecessor = value
 
     def get_successors(self):
@@ -82,6 +82,7 @@ class BigraphNode(object):
         """
         if value is not None:
             assert(isinstance(value, BigraphNode))
+            assert(id(value)!=id(self)) # So we never get a loop
             if value not in self._successors:
                 self._successors.append(value)
 

@@ -27,7 +27,7 @@ import sysconfig
 
 # local imports
 from tkAppFramework.tkApp import AppAboutInfo, tkApp
-import tkMandelbrotSet.mandelbrot
+import tkMandelbrotSet.mandelbrot_set_model
 import tkMandelbrotSet.view_manager
 
 
@@ -60,7 +60,7 @@ class MandelbrotSetApp(tkApp):
         Factory method to create the model for the app.
         :return: The model for the app, MandelbrotSet object
         """
-        return tkMandelbrotSet.mandelbrot.MandelbrotSet()
+        return tkMandelbrotSet.mandelbrot_set_model.MandelbrotSetModel()
 
     def _setup_logging(self, log_level=logging.INFO):
         """

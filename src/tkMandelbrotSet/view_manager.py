@@ -73,8 +73,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         :return None:
         """
         model = self.getModel()
-        model.generate_mandelbrot_set()
-        x, y, z = model.get_plot_data()
+        x, y, z = model.get_current_node_plot_data()
         self._plot_widget.make_plot(x, y, z)
         return None
         
@@ -94,7 +93,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         else:
             # We'll assume, since the corner values didn't change, that the colormap selection changed.
             # And we need the plot to be redrawn.
-            x, y, z = self.getModel().get_plot_data()
+            x, y, z = self.getModel().get_current_node_plot_data()
             self._plot_widget.make_plot(x, y, z)
         return None
 

@@ -2,7 +2,7 @@
 This module defines the MandelbrotSet class, which generates a Mandelbrot set and stores it for later retrieval.
 
 Exported classes:
-    Mandelbrot Set: Class the can generate a Mandelbrot Set.
+    MandelbrotSet: Class that can generate a Mandelbrot Set.
 
 Exported functions:
     None
@@ -17,13 +17,12 @@ from array import array
 from math import floor
 
 # package imports
-from tkAppFramework.model import Model
 from tkMandelbrotSet.memento import SetMemento
 
 
-class MandelbrotSet(Model):
+class MandelbrotSet(object):
     """
-    
+    Class that can generate a Mandelbrot Set.
     """
     def __init__(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0),
                  pts_real=500, pts_imag=500, z_max=2.0, max_iters=50):
@@ -36,7 +35,6 @@ class MandelbrotSet(Model):
         :parameter z_max: The maximum value of z to be considered for divergence, float
         :parameter max_iters: The maximum number of iterations to be performed for each point in the complex plane, integer
         """
-        super().__init__()
         assert(max_iters>1)
         assert(z_max>0)
         assert(pts_real>0)
@@ -110,7 +108,6 @@ class MandelbrotSet(Model):
         assert(type(value)==complex)
         self._ul_corner = value
         self._clear_mandelbrot_set_data()
-        self.notify()
 
     @property
     def lr_corner(self):
@@ -127,11 +124,10 @@ class MandelbrotSet(Model):
         assert(type(value)==complex)
         self._lr_corner = value
         self._clear_mandelbrot_set_data()
-        self.notify()
 
     def set_corners(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0)):
         """
-        Set both corners of the complex plan to be visualized. Call this function instead of the property setters
+        Set both corners of the complex plane to be visualized. Call this function instead of the property setters
         for the individual corners when you want to change both corners and only want one notify() to Observers.
         :parameter ul_corner: The upper left corner of the complex plane to be visualized, complex
         :parameter lr_corner: The lower right corner of the complex plane to be visualized, complex
@@ -144,7 +140,6 @@ class MandelbrotSet(Model):
         self._ul_corner = ul_corner
         self._lr_corner = lr_corner
         self._clear_mandelbrot_set_data()
-        self.notify()
         return None
 
     @property
