@@ -49,21 +49,21 @@ class tkMandelbrotSetViewManager(tkViewManager):
         Sets up and registers the child widgets of the tkMandelbrotSetViewManager widget.
         :return None:
         """
+        self._zoom_nav_widget = MandelbrotSetZoomNavigationWidget(self)
+        self.register_subject(self._zoom_nav_widget, self.handle_zoom_nav_widget_update)
+        self._zoom_nav_widget.attach(self)
+        self._zoom_nav_widget.grid(column=0, row=0, sticky='NWES') # Grid-2
+        self.columnconfigure(0, weight=1) # Grid-2
+        self.rowconfigure(0, weight=0) # Grid-2
+
         self._plot_widget = MandelbrotSetPlotWidget(self)
         self.register_subject(self._plot_widget, self.handle_plot_widget_update)
         self._plot_widget.attach(self)
-        self._plot_widget.grid(column=0, row=0, sticky='NWES') # Grid-2
+        self._plot_widget.grid(column=0, row=1, sticky='NWES') # Grid-2
         self.columnconfigure(0, weight=4) # Grid-2
-        self.rowconfigure(0, weight=1) # Grid-2
+        self.rowconfigure(1, weight=1) # Grid-2
         model = self.getModel()
         self._plot_widget.set_state(model.ul_corner, model.lr_corner, '')
-
-        self._memento_widget = MandelbrotSetMementoWidget(self)
-        self.register_subject(self._memento_widget, self.handle_memento_widget_update)
-        self._memento_widget.attach(self)
-        self._memento_widget.grid(column=1, row=0, sticky='NWES') # Grid-2
-        self.columnconfigure(1, weight=1) # Grid-2
-        self.rowconfigure(0, weight=1) # Grid-2
 
         return None
 
@@ -97,12 +97,21 @@ class tkMandelbrotSetViewManager(tkViewManager):
             self._plot_widget.make_plot(x, y, z)
         return None
 
-    def handle_memento_widget_update(self):
+    def handle_zoom_nav_widget_update(self):
         """
-        Handle updates from MandelbrotSetMementoWidget widget.
+        Handle updates from MandelbrotSetZoomNavigationWidget widget.
         :return: None
         """
-        # TODO: Pass the selected memento back to the Model
+        nav_req = self._zoom_nav_widget.get_state()
+        match nav_req:
+            case 'None':
+                pass
+            case 'Home':
+                self.getModel().home()
+            case 'Back':
+                self.getModel().rewind()
+            case 'Forward':
+                self.getModel().forward()
         return None
 
 
@@ -250,17 +259,17 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         return None
 
 
-class MandelbrotSetMementoWidget(ttk.Labelframe, Subject):
+class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
     """
-    Class represents a tkinter label frame, the widget contents of which display the set of "mementos" from the Model
-    which represent the "zoom rectangle" history of visualizations of the Mandelbrot set.
+    Class represents a tkinter label frame, the widget contents of which enables navigation within the set of zoom location
+    histories (zoom rectangles) stored by the Model.
     Class is also a Subject in Observer design pattern.
     """
     def __init__(self, parent) -> None:
         """
         :parameter parent: tkinter widget that is the parent of this widget, in this case the tkMandelbrotsetViewManager
         """
-        ttk.Labelframe.__init__(self, parent, text="Mandelbrot Set Zoom Stack")
+        ttk.Labelframe.__init__(self, parent, text="Mandelbrot Set Zoom History Navigation")
         Subject.__init__(self)
         self._CreateWidgets()
 
@@ -269,27 +278,66 @@ class MandelbrotSetMementoWidget(ttk.Labelframe, Subject):
         This method is called by __init__() to create the child widgets of the MandelbrotSetMementoWidget.
         :return None:
         """
-        self._lb_mementos = tk.Listbox(self)
-        self._lb_mementos.grid(column=0, row=0, sticky='NWES') # Grid-3
+        self._possible_moves = ['None', 'Home', 'Back', 'Forward']
+        self._requested_move = self._possible_moves[0] # So 'None'
+
+        self._btn_home= ttk.Button(self, text='Home', command=self.OnHomeButtonClicked)
+        self._btn_home.grid(column=0, row=0) # Grid-3
         self.columnconfigure(0, weight=1) # Grid-3
+        self.rowconfigure(0, weight=1) # Grid-3
+
+        self._btn_back = ttk.Button(self, text='<< Back', command=self.OnBackButtonClicked)
+        self._btn_back.grid(column=1, row=0) # Grid-3
+        self.columnconfigure(1, weight=1) # Grid-3
+        self.rowconfigure(0, weight=1) # Grid-3
+
+        # TODO: Later this will need to be a menu button that shows all forward zooming choices
+        self._btn_forward = ttk.Button(self, text='Forward >>', command=self.OnForwardButtonClicked)
+        self._btn_forward.grid(column=2, row=0) # Grid-3
+        self.columnconfigure(2, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
 
         return None
 
-    # def onSelectMemento(self, key):
-    #     """
-    #     Handle selection of a zoom memento from the listbox.
-    #     :parameter key: Key of the colormap selected from the menu, string
-    #     :return: None
-    #     """
-    #     assert(isinstance(key, str) and key in self._colormaps)
-    #     self._selected_colormap = key
-    #     self.notify()
-    #     return None
+    def OnHomeButtonClicked(self):
+        """
+        Handle click of the Home button
+        :return: None
+        """
+        self._set_state('Home')
+        return None
 
-    # def get_state(self):
-    #     """
-    #     Returns the zoom corners of the widget, and the selected colormap
-    #     :return: Tuple (upper-left corner, lower-right-corner, selected colormap), as tuple (complex, complex, string)
-    #     """
-    #     return (self._zoom_ulc, self._zoom_lrc, self._selected_colormap)
+    def OnBackButtonClicked(self):
+        """
+        Handle click of the Back button
+        :return: None
+        """
+        self._set_state('Back')
+        return None
+
+    def OnForwardButtonClicked(self):
+        """
+        Handle click of the Forward button
+        :return: None
+        """
+        self._set_state('Forward')
+        return None
+
+    def _set_state(self, state):
+        """
+        Set the "move" that the user requests.
+        :parameter state: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        :return: None
+        """
+        if state in self._possible_moves:
+            self._requested_move = state
+            self.notify()
+            self._requested_move = self._possible_moves[0] # So, 'None'
+        return None
+
+    def get_state(self):
+        """
+        Returns the "move" that the user requested.
+        :return: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        """
+        return self._requested_move

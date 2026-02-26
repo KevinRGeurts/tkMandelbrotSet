@@ -62,6 +62,16 @@ class MandelbrotSetModel(Model):
         plot_data = self._mandelbrot_set.get_plot_data()
         return plot_data
 
+    def home(self):
+        """
+        Move the current zoom location back to the root of zoom tree.
+        Note: For now, the move is actually to the root's successor, which has the same payload as the root.
+        :return: None
+        """
+        self._current_node = self._zoom_graph.root.successor
+        self.notify()
+        return None
+
     def rewind(self):
         """
         Move the current zoom location back one location (node) in the zoom tree. If there is no previous location,
