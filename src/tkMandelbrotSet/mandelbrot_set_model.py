@@ -11,7 +11,9 @@ Exported exceptions:
     None
 """
 
+
 # standard library imports
+from uuid import UUID
 
 # package imports
 from tkMandelbrotSet.mandelbrot import MandelbrotSet
@@ -38,7 +40,7 @@ class MandelbrotSetModel(Model):
         self._zoom_graph = Bigraph(root_node)
         self._current_branch = Branch(branch_first_node, 'only branch for now')
         self._zoom_graph.add_branch(new_branch=self._current_branch)
-        self._current_node = root_node
+        self._current_node = branch_first_node
 
     @property
     def ul_corner(self):
@@ -48,6 +50,28 @@ class MandelbrotSetModel(Model):
     def lr_corner(self):
         return self._mandelbrot_set.lr_corner
 
+    def get_current_node_predecessor_ID(self):
+        """
+        Return the GUID of the predecessor of the current zoom location (node).
+        :return: UUID if a predecessor exists, or UUID(int=0x0) if it does not
+        """
+        result = UUID(int=0x0) # This is the "no predecessor" return value
+        pre = self._current_node.predecessor
+        if pre is not None:
+            result = pre.nodeID
+        return result
+
+    def get_current_node_successor_IDs(self):
+        """
+        Return the GUIDs of the successors of the current zoom location (node).
+        :return: List of UUID if one or more successors exists, or an empty list if none exist
+        """
+        result = [] # This is the "no successors" return value, it it stays an empty list
+        sucs = self._current_node.get_successors()
+        for suc in sucs:
+            result.append(suc.nodeID)
+        return result
+    
     def get_current_node_plot_data(self):
         """
         Return Mandelbrot set data (formatted for plotting) for the current zoom location (node).

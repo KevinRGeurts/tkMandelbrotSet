@@ -17,6 +17,7 @@ Exported Functions:
 import tkinter as tk
 from tkinter import ttk
 from functools import partial
+from turtle import forward
 
 # 3rd party package imports (e.g., from PyPi)
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -55,6 +56,8 @@ class tkMandelbrotSetViewManager(tkViewManager):
         self._zoom_nav_widget.grid(column=0, row=0, sticky='NWES') # Grid-2
         self.columnconfigure(0, weight=1) # Grid-2
         self.rowconfigure(0, weight=0) # Grid-2
+        # Disable/enable appropriate zoom navigation controls based on available zoom directions.
+        self._enable_disable_zoom_nav_controls()
 
         self._plot_widget = MandelbrotSetPlotWidget(self)
         self.register_subject(self._plot_widget, self.handle_plot_widget_update)
@@ -95,6 +98,8 @@ class tkMandelbrotSetViewManager(tkViewManager):
             # And we need the plot to be redrawn.
             x, y, z = self.getModel().get_current_node_plot_data()
             self._plot_widget.make_plot(x, y, z)
+        # Disable/enable appropriate zoom navigation controls based on available zoom directions.
+        self._enable_disable_zoom_nav_controls()
         return None
 
     def handle_zoom_nav_widget_update(self):
@@ -112,7 +117,36 @@ class tkMandelbrotSetViewManager(tkViewManager):
                 self.getModel().rewind()
             case 'Forward':
                 self.getModel().forward()
+
+        # Disable/enable appropriate zoom navigation controls based on available zoom directions.
+        self._enable_disable_zoom_nav_controls()
+
         return None
+
+    def _enable_disable_zoom_nav_controls(self):
+        """
+        This is a utility function called to appropriately enable or disable zoom navigation controls based on available
+        zoom directions.
+        :return: None
+        """
+        zoomIDs=self._get_backward_forward_ids()
+        back_disabled = False
+        if zoomIDs[0].int==0x0: back_disabled=True
+        forward_disabled = False
+        if len(zoomIDs[1])<1: forward_disabled=True
+        self._zoom_nav_widget.disable(back_disabled, forward_disabled)
+        return None
+    
+    def _get_backward_forward_ids(self):
+        """
+        This is a utility function used to retrieve unique id codes from the Model for the backward and forward possible zoom navigations.
+        :return: Tuple as follows:
+                 [0] ID of available backward zoom, with UUID(int=0x0x) value indicating no possible backward zoom, as UUID or UUID(int=0x0) 
+                 [1] List of IDs of available forwards zoom, with empty indicating no possible backward zoom, as [UUID] 
+        """
+        back_ID = self.getModel().get_current_node_predecessor_ID()
+        forward_IDs = self.getModel().get_current_node_successor_IDs()
+        return (back_ID, forward_IDs)
 
 
 class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
@@ -135,7 +169,7 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         """
         # Make a matplotlib Figure that will be added to the matplotlib FigureCanvasTkAgg below,
         # and give it an axes.
-        self._figure = Figure(figsize=(5,4), dpi=100)
+        self._figure = Figure(figsize=(5,4), dpi=100) # figsize=(width in inches, height in inches)
         self._ax = self._figure.add_subplot()
         
         self._mpl_figure_canvas = FigureCanvasTkAgg(self._figure, self)
@@ -181,6 +215,12 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         :parameter erelease: The matplotlib mouse button release event
         :return: None
         """
+        
+        # Need to see the zoom rectangle, so make visible, so it shows up on the plot.
+        for artist in self._zoom_rectangle.artists :
+            artist.set_visible(False)
+        self._zoom_rectangle.update()
+
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
         # Handle the possibility that the user dragged in different directions from the initial click 
@@ -200,6 +240,12 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self._zoom_lrc = complex(lrcr, lrci)
         # print(f"Zooming to upper-left-corner {self._zoom_ulc} and lower-right-corner {self._zoom_lrc}.")
         self.notify()
+        
+        # Done with the zoom rectangle, so make it invisible, so it doesn't continue to show up on the plot.
+        for artist in self._zoom_rectangle.artists :
+            artist.set_visible(False)
+        self._zoom_rectangle.update()
+        
         return None
 
     def onSelectColormap(self, key):
@@ -341,3 +387,22 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         :return: One string from list ['None', 'Home', 'Back', 'Forward'], as string
         """
         return self._requested_move
+
+    def disable(self, back_disabled=True, forward_disabled=True):
+        """
+        Used to set if widget's 'back' and 'forward' buttons are enabled or disabled.
+        :parameter back_disabled: True if the widget's 'back' button should be disabled, False if it should be enabled, boolean
+        :parameter forward_disabled: True if the widget's 'forward' button should be disabled, False if it should be enabled, boolean
+        :return None:
+        """
+        # Handle back button
+        if back_disabled:
+            self._btn_back.state(['disabled'])
+        else:
+            self._btn_back.state(['!disabled'])
+        # Handle forward button
+        if forward_disabled:
+            self._btn_forward.state(['disabled'])
+        else:
+            self._btn_forward.state(['!disabled'])
+        return None
