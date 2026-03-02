@@ -71,6 +71,25 @@ class MandelbrotSetModel(Model):
         for suc in sucs:
             result.append(suc.nodeID)
         return result
+
+    def get_current_node_available_zoom_locations(self):
+        """
+        Get a list of the available zoom locations (that is, payload locations of node successors) for the current zoom
+        location (node).
+        :return: List of available zooms as list of tuples:
+                    (ulx,uly,lrx,lry), where: ulx = upper-left-corner x-value (real-axis) of zoom location
+                                              uly = upper-left-corner y-value (imaginary-axis) of zoom location
+                                              lrx = lower-right-corner x-value (real-axis) of zoom location
+                                              lry = lower-right-corner y-value (imaginary-axis) of zoom location        
+        """
+        avail_zooms = []
+        sucs = self._current_node.get_successors()
+        for suc in sucs:
+            payload = suc.payload
+            state = payload.get_state()
+            location = (state[0].real, state[0].imag, state[1].real, state[1].imag)
+            avail_zooms.append(location)
+        return avail_zooms
     
     def get_current_node_plot_data(self):
         """

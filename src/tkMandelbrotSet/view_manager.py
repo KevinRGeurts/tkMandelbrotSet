@@ -23,6 +23,7 @@ from turtle import forward
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
+from matplotlib.patches import Rectangle
 
 # Local imports
 from tkAppFramework.tkViewManager import tkViewManager
@@ -77,7 +78,13 @@ class tkMandelbrotSetViewManager(tkViewManager):
         """
         model = self.getModel()
         x, y, z = model.get_current_node_plot_data()
-        self._plot_widget.make_plot(x, y, z)
+
+        # Get available zoom locations from Model
+        avail_zooms = self.getModel().get_current_node_available_zoom_locations()
+
+        # Ask the plot widget to make the plot
+        self._plot_widget.make_plot(x, y, z, avail_zooms)
+
         return None
         
     def handle_plot_widget_update(self):
@@ -97,7 +104,9 @@ class tkMandelbrotSetViewManager(tkViewManager):
             # We'll assume, since the corner values didn't change, that the colormap selection changed.
             # And we need the plot to be redrawn.
             x, y, z = self.getModel().get_current_node_plot_data()
-            self._plot_widget.make_plot(x, y, z)
+            # Get available zoom locations from Model
+            avail_zooms = self.getModel().get_current_node_available_zoom_locations()
+            self._plot_widget.make_plot(x, y, z, avail_zooms)
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
         return None
@@ -285,13 +294,18 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self.notify()
         return None
 
-    def make_plot(self, x, y, z):
+    def make_plot(self, x, y, z, avail_zooms=[]):
         """
         Make the Mandelbrot set plot with calls to matplotlib.
         :parameter x: real-axis (x) values as list of floats
         :parameter y: imaginary-axis (y) values as list of floats
         :parameter z: iterations for divergence at each point, as a list of lists of ints, in column major order, such that,
                       z[j][i] = the zth value at the jth value of the imaginary axis and the ith value of the real axis
+        :parameter avail_zooms: List of available zooms, to be indicated visually on the plot, as list of tuples:
+                                (ulx,uly,lrx,lry), where: ulx = upper-left-corner x-value of zoom location
+                                                          uly = upper-left-corner y-value of zoom location
+                                                          lrx = lower-right-corner x-value of zoom location
+                                                          lry = lower-right-corner y-value of zoom location
         :return: None
         """
         self._ax.cla() # Clear the axes for the next time through...
@@ -300,7 +314,20 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self._ax.set_ylabel("Imaginary-Axis")
         self._ax.use_sticky_edges = True
         graph = self._ax.pcolormesh(x, y, z, cmap=self._selected_colormap)
+        # self._mpl_figure_canvas.draw()
+
+        # Use rectangle "patches" to visually indicate available zoom locations.
+        for zoom in avail_zooms:
+            ulx = zoom[0]
+            uly = zoom[1]
+            lrx = zoom[2]
+            lry = zoom[3]
+            width = lrx-ulx
+            height = uly-lry 
+            self._ax.add_patch(Rectangle((ulx, lry), width, height, facecolor="none", ec='r', lw=2))
+
         self._mpl_figure_canvas.draw()
+
 
         return None
 
