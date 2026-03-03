@@ -17,7 +17,7 @@ Exported Functions:
 import tkinter as tk
 from tkinter import ttk
 from functools import partial
-from turtle import forward
+from turtle import color
 
 # 3rd party package imports (e.g., from PyPi)
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -67,7 +67,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         self.columnconfigure(0, weight=4) # Grid-2
         self.rowconfigure(1, weight=1) # Grid-2
         model = self.getModel()
-        self._plot_widget.set_state(model.ul_corner, model.lr_corner, '')
+        self._plot_widget.set_state(model.ul_corner, model.lr_corner, '', True)
 
         return None
 
@@ -101,8 +101,8 @@ class tkMandelbrotSetViewManager(tkViewManager):
             # called, and in the plot being redrawn.
             self.getModel().set_corners(widget_zoom[0], widget_zoom[1])
         else:
-            # We'll assume, since the corner values didn't change, that the colormap selection changed.
-            # And we need the plot to be redrawn.
+            # We'll assume, since the corner values didn't change, that the colormap selection or show zoom checkbutton changed,
+            # and we need the plot to be redrawn.
             x, y, z = self.getModel().get_current_node_plot_data()
             # Get available zoom locations from Model
             avail_zooms = self.getModel().get_current_node_available_zoom_locations()
@@ -129,6 +129,15 @@ class tkMandelbrotSetViewManager(tkViewManager):
 
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
+
+        # Since the model's corner values may have changed based on the model operation performed in the above match statement,
+        # it is required to update the zoom widget's corners as well, otherwise the next call to handle_plot_widget_update() method
+        # may mistakenly set the model corners.
+        pw_state = self._plot_widget.get_state()
+        model = self.getModel()
+        ulc = model.ul_corner
+        lrc = model.lr_corner
+        self._plot_widget.set_state(ulc, lrc, pw_state[2], pw_state[3])
 
         return None
 
@@ -182,7 +191,7 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self._ax = self._figure.add_subplot()
         
         self._mpl_figure_canvas = FigureCanvasTkAgg(self._figure, self)
-        self._mpl_figure_canvas.get_tk_widget().grid(column=0, row=0, sticky='NWES') # Grid-3
+        self._mpl_figure_canvas.get_tk_widget().grid(column=0, row=0, columnspan=2, sticky='NWES') # Grid-3
         self.columnconfigure(0, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
 
@@ -194,7 +203,7 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         self._mbtn_colormap = ttk.Menubutton(self, text='Colormap', takefocus=1)
         self._mbtn_colormap.grid(column=0, row=1) # Grid-3
         self.columnconfigure(0, weight=1) # Grid-3
-        self.rowconfigure(1, weight=0) #
+        self.rowconfigure(1, weight=0) # Grid-3
         # Colormap menu button menu
         self._menu_colormap = tk.Menu(self._mbtn_colormap)
         self._mbtn_colormap['menu'] = self._menu_colormap
@@ -215,6 +224,23 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
                                                  minspany=5,
                                                  spancoords='pixels',
                                                  interactive=True)
+
+        self._ckbt_show_zooms = ttk.Checkbutton(self, text='Show Zoom Rectangles', command=self.onShowZoomCheckButtonClick)
+        self._ckbt_show_zooms.grid(column=1, row=1) # Grid-3
+        self.columnconfigure(1, weight=1) # Grid-3
+        self.rowconfigure(1, weight=0) # Grid-3
+        self._ivar_show_zooms = tk.IntVar()
+        self._ivar_show_zooms.set(1) # Starting state is checked or show
+        self._ckbt_show_zooms['variable']=self._ivar_show_zooms
+
+        return None
+
+    def onShowZoomCheckButtonClick(self):
+        """
+        Handle checking or unchecking the "Show Zoom Rectangles" check button.
+        :return: None
+        """
+        self.notify()
         return None
 
     def zoom_rectangle_callback(self, eclick, erelease):
@@ -270,27 +296,36 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
 
     def get_state(self):
         """
-        Returns the zoom corners of the widget, and the selected colormap.
-        :return: Tuple (upper-left corner, lower-right-corner, selected colormap), as tuple (complex, complex, string)
+        Returns the zoom corners of the widget, the selected colormap, and if zoom locations should be indicated.
+        :return: Tuple (upper-left corner, lower-right-corner, selected colormap, show zoom locations), as tuple (complex, complex, string boolean)
         """
-        return (self._zoom_ulc, self._zoom_lrc, self._selected_colormap)
+        show_zooms = False
+        if self._ivar_show_zooms.get() == 1: show_zooms = True
+        return (self._zoom_ulc, self._zoom_lrc, self._selected_colormap, show_zooms)
 
-    def set_state(self, ulc=complex(0,0), lrc=complex(0,0), cm=''):
+    def set_state(self, ulc=complex(0,0), lrc=complex(0,0), color_map='', show_zooms=True):
         """
-        Sets the zoom corners of the widget, and the selected colormap.
+        Sets the zoom corners of the widget, the selected colormap, and the state of the show zoom rectangles checkbutton.
         :parameter ulc: Upper-left corner of the zoom rectangle in the complex plane, complex
         :parameter lrc: Lower-right corner of the zoom rectangle in the complex plane, complex
+        :parameter color_map: Name of matplotlib colormap
+        :parameter show_zooms: True if zoom rectangles should be drawn on the plot, as bool
         :return: None
         """
         assert(type(ulc)==complex)
         assert(type(lrc)==complex)
         assert(lrc.real>ulc.real)
         assert(lrc.imag<ulc.imag)
-        assert(type(cm)==str)
+        assert(type(color_map)==str)
+        assert(type(show_zooms)==bool)
         self._zoom_ulc = ulc
         self._zoom_lrc = lrc
-        if len(cm) != 0:
-            self._selected_colormap = cm
+        if len(color_map) != 0:
+            self._selected_colormap = color_map
+        if show_zooms:
+            self._ivar_show_zooms.set(1)
+        else:
+            self._ivar_show_zooms.set(0)
         self.notify()
         return None
 
@@ -309,25 +344,33 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         :return: None
         """
         self._ax.cla() # Clear the axes for the next time through...
+        
+        # Provide axis labels
         self._ax.set_aspect("equal")
         self._ax.set_xlabel("Real-Axis")
         self._ax.set_ylabel("Imaginary-Axis")
         self._ax.use_sticky_edges = True
+        
+        # Create the Mandelbrot set plot
         graph = self._ax.pcolormesh(x, y, z, cmap=self._selected_colormap)
-        # self._mpl_figure_canvas.draw()
 
         # Use rectangle "patches" to visually indicate available zoom locations.
-        for zoom in avail_zooms:
-            ulx = zoom[0]
-            uly = zoom[1]
-            lrx = zoom[2]
-            lry = zoom[3]
-            width = lrx-ulx
-            height = uly-lry 
-            self._ax.add_patch(Rectangle((ulx, lry), width, height, facecolor="none", ec='r', lw=2))
+        # And annotate each rectangle with an index number.
+        if self._ivar_show_zooms.get() == 1:
+            zi = 0
+            for zoom in avail_zooms:
+                ulx = zoom[0]
+                uly = zoom[1]
+                lrx = zoom[2]
+                lry = zoom[3]
+                width = lrx-ulx
+                height = uly-lry 
+                self._ax.add_patch(Rectangle((ulx, lry), width, height, facecolor="none", ec='r', lw=2))
+                self._ax.annotate(f"{zi}", xy=(ulx, uly), xytext=(ulx, lry), color='r', fontsize='large', fontweight='bold')
+                zi += 1
 
+        # Actually draw the figure
         self._mpl_figure_canvas.draw()
-
 
         return None
 

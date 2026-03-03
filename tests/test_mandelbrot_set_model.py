@@ -39,6 +39,18 @@ class Test_MandelbrotSetModel(unittest.TestCase):
         act_val = msm.lr_corner
         self.assertEqual(exp_val, act_val)
 
+    def test_set_corners_to_split_branch(self):
+        msm = MandelbrotSetModel()
+        msm.set_corners(ul_corner=complex(real=-1.0, imag=1.0), lr_corner=complex(real=0.0, imag=-1.0))
+        exp_val = []
+        exp_val.append(msm._current_node.nodeID)
+        msm.rewind()
+        msm.set_corners(ul_corner=complex(real=-0.5, imag=0.5), lr_corner=complex(real=-0.1, imag=-0.5))
+        exp_val.append(msm._current_node.nodeID)
+        msm.rewind()
+        act_val = msm.get_current_node_successor_IDs()
+        self.assertEqual(exp_val, act_val)
+
     def test_get_current_node_predecessor_ID(self):
         msm = MandelbrotSetModel()
         exp_val = msm._current_node.nodeID

@@ -38,7 +38,7 @@ class MandelbrotSetModel(Model):
         root_node = BigraphNode(payload=root_memento)
         branch_first_node = BigraphNode(payload=root_memento) # Same payload as root_node, at least for now
         self._zoom_graph = Bigraph(root_node)
-        self._current_branch = Branch(branch_first_node, 'only branch for now')
+        self._current_branch = Branch(branch_first_node, f"branch starting with node {branch_first_node.nodeID}")
         self._zoom_graph.add_branch(new_branch=self._current_branch)
         self._current_node = branch_first_node
 
@@ -133,11 +133,17 @@ class MandelbrotSetModel(Model):
         """
         Move the current zoom location forward one location (node) in the zoom tree. If there is no next location,
         then the current zoom location is not changed, and an exception (MandelbrotSetNoNextZoomLocation) is raised.
-        Note that as currently implemented, this method will always move forward to the first successor available, and
-        thus it does not (yet) understand tree branching.
+        Note that as currently implemented, this method will always move forward to the LAST successor available, and
+        thus always along the most recently created branch.
         :return: None
         """
-        move_to_node = self._current_node.successor
+        # TODO: When this code is improved so that it is possible to move forward to any available successor,
+        # then it will be necessary to update self._current_branch, based on which successor was chosen.
+        sucs = self._current_node.get_successors()
+        if len(sucs) == 0:
+            move_to_node = None
+        else:
+            move_to_node = sucs[len(sucs)-1]
         if move_to_node is not None:
             self._current_node = move_to_node
             self.notify()
@@ -156,7 +162,15 @@ class MandelbrotSetModel(Model):
         self._mandelbrot_set.set_corners(ul_corner, lr_corner)
         memento = self._mandelbrot_set.create_memento()
         new_node = BigraphNode(payload=memento)
-        self._zoom_graph.branches[0].add_node(new_node)
+        # If current node is the tip node of the current branch, then add the new node such that it becomes the new tip
+        # of the current branch. We will use the node ids to determine node "equality".
+        if self._current_node.nodeID == self._current_branch.tip_node.nodeID:
+            self._current_branch.add_node(new_node)
+        # Otherwise, we are "splitting" the current branch, so we need to create a new branch at the current node.
+        else:
+            new_branch = Branch(tip=new_node, name=f"branch starting with node {new_node.nodeID}")
+            self._zoom_graph.add_branch(at_node=self._current_node, new_branch=new_branch)
+            self._current_branch = new_branch
         self._current_node = new_node
         self.notify()
         return None
