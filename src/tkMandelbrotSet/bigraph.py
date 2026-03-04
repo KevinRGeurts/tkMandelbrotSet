@@ -4,6 +4,7 @@ This python module defines classes for representing a bigraph data structure.
 
 # standard imports
 from uuid import uuid4
+from xml.sax.handler import property_declaration_handler
 
 # local imports
 
@@ -187,6 +188,23 @@ class Bigraph(object):
                     new_branch[len(new_branch)-1].predecessor = self.root
         return None
 
+    def get_nodes_branch(self, node):
+        """
+        Return the branch that parameter node belongs to in the graph. Note that since a node can belong to more than
+        one branch, depending on its location relative to splits in a branch, for purposes of this method,
+        such a node will belong to the first branch it belonged to.
+        :parameter node: The node for which the owning branch is requested, as BigraphNode object
+        :return: The branch of the graph the node belongs to, as Branch object
+                 Note: Returns None if node is not an any branch in the graph.
+        """
+        assert(isinstance(node, BigraphNode))
+        result = None
+        for br in self._branches:
+            if br.is_node_on_branch(node):
+                result = br
+                break
+        return result
+
     def traverse(self, root=None):
         """
         Traverse the bigraph "upwards" (i.e., from root to tips), visiting each node, and returning a list of nodes.
@@ -230,6 +248,9 @@ class Branch(BigraphNode):
         :parameter tip: The bigraph node at the tip of this branch, as BigraphNode object
         :parameter name: The name of this branch, as string
         """
+        # Create a unique ID for the branch
+        self._branch_ID = uuid4()
+        
         if tip is None:
             # Create a new unique node for the tip
             tip = BigraphNode()
@@ -239,6 +260,10 @@ class Branch(BigraphNode):
         assert(type(name)==str)
         self._name =name
 
+    @property
+    def branchID(self):
+        return self._branch_ID
+        
     @property
     def name(self):
         return self._name
@@ -271,6 +296,20 @@ class Branch(BigraphNode):
         self.tip_node.insert_node(node)
         self.tip_node = node
         return None
+
+    def is_node_on_branch(self, node):
+        """
+        Determine if parameter node is on this branch.
+        :parameter node: The node to check the branch for, as BigraphNode
+        :return: True if parameter node is on this branch, otherwise False, as boolean
+        """
+        assert(isinstance(node, BigraphNode))
+        result = False
+        for node_index in range(len(self)):
+            if self[node_index].nodeID == node.nodeID:
+                result = True
+                break
+        return result
 
     def __len__(self):
         """

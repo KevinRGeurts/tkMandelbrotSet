@@ -116,7 +116,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         Handle updates from MandelbrotSetZoomNavigationWidget widget.
         :return: None
         """
-        nav_req = self._zoom_nav_widget.get_state()
+        (nav_req, nav_index) = self._zoom_nav_widget.get_state()
         match nav_req:
             case 'None':
                 pass
@@ -125,10 +125,13 @@ class tkMandelbrotSetViewManager(tkViewManager):
             case 'Back':
                 self.getModel().rewind()
             case 'Forward':
-                self.getModel().forward()
+                self.getModel().forward(nav_index)
 
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
+        # Populate the Forward zoom navigation menu based on available zoom locations
+        avail_zooms = self.getModel().get_current_node_available_zoom_locations()
+        self._zoom_nav_widget._populateForwardMenu(avail_zooms)
 
         # Since the model's corner values may have changed based on the model operation performed in the above match statement,
         # it is required to update the zoom widget's corners as well, otherwise the next call to handle_plot_widget_update() method
@@ -396,6 +399,7 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         """
         self._possible_moves = ['None', 'Home', 'Back', 'Forward']
         self._requested_move = self._possible_moves[0] # So 'None'
+        self._forward_index = 0
 
         self._btn_home= ttk.Button(self, text='Home', command=self.OnHomeButtonClicked)
         self._btn_home.grid(column=0, row=0) # Grid-3
@@ -407,14 +411,41 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         self.columnconfigure(1, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
 
-        # TODO: Later this will need to be a menu button that shows all forward zooming choices
-        self._btn_forward = ttk.Button(self, text='Forward >>', command=self.OnForwardButtonClicked)
-        self._btn_forward.grid(column=2, row=0) # Grid-3
+        # Forward menu button
+        self._mbtn_forward = ttk.Menubutton(self, text='Forward', takefocus=1)
+        self._mbtn_forward.grid(column=2, row=0) # Grid-3
         self.columnconfigure(2, weight=1) # Grid-3
-        self.rowconfigure(0, weight=1) # Grid-3
+        self.rowconfigure(0, weight=0) # Grid-3
+        # Forward menu button menu
+        self._menu_forward = tk.Menu(self._mbtn_forward)
+        self._mbtn_forward['menu'] = self._menu_forward
 
         return None
 
+    def _populateForwardMenu(self, avail_zooms=[]):
+        """
+        Utility function for population Forward menu with commands.
+        :parameter avail_zooms: List of available zoom locations.
+        :return: None
+        """
+        # Remove any current commands from the menu
+        self._menu_forward.delete(0, self._menu_forward.index(tk.END))
+        # Add new commands to the menu
+        index = 0
+        for zoom in avail_zooms:
+            self._menu_forward.add_command(label = f"Zoom Location {index}", command = partial(self.onSelectForwardZoom, index))
+            index += 1
+        return None
+
+    def onSelectForwardZoom(self, index):
+        """
+        Handle selection of zoom location from Forward menu.
+        :parameter Index: Index (0, 1, 2, ...) of the zoom location selected from the menu, integer
+        :return: None
+        """
+        self._set_state('Forward', index)
+        return None
+    
     def OnHomeButtonClicked(self):
         """
         Handle click of the Home button
@@ -431,32 +462,27 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         self._set_state('Back')
         return None
 
-    def OnForwardButtonClicked(self):
-        """
-        Handle click of the Forward button
-        :return: None
-        """
-        self._set_state('Forward')
-        return None
-
-    def _set_state(self, state):
+    def _set_state(self, state_string, state_index=-1):
         """
         Set the "move" that the user requests.
-        :parameter state: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        :parameter state_string: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        :parameter state_index: Integer indicating which forward zoom path was requested, as integer
         :return: None
         """
-        if state in self._possible_moves:
-            self._requested_move = state
+        if state_string in self._possible_moves:
+            self._requested_move = state_string
+            self._forward_index = state_index
             self.notify()
             self._requested_move = self._possible_moves[0] # So, 'None'
+            self._forward_index = -1
         return None
 
     def get_state(self):
         """
         Returns the "move" that the user requested.
-        :return: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        :return: Tuple (One string from list ['None', 'Home', 'Back', 'Forward'], index of requested forward zoom), as (string, integer)
         """
-        return self._requested_move
+        return (self._requested_move, self._forward_index)
 
     def disable(self, back_disabled=True, forward_disabled=True):
         """
@@ -470,9 +496,9 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
             self._btn_back.state(['disabled'])
         else:
             self._btn_back.state(['!disabled'])
-        # Handle forward button
+        # Handle forward menu button
         if forward_disabled:
-            self._btn_forward.state(['disabled'])
+            self._mbtn_forward.state(['disabled'])
         else:
-            self._btn_forward.state(['!disabled'])
+            self._mbtn_forward.state(['!disabled'])
         return None

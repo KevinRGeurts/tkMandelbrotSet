@@ -134,6 +134,7 @@ class Test_Branch(unittest.TestCase):
         branch = Branch(tip=node, name=_name)
         self.assertEqual(_name, branch.name)
         self.assertEqual(node, branch.tip_node)
+        self.assertTrue(type(branch.branchID)==UUID)
 
     def test_name_property_setter(self):
         branch = Branch(name='')
@@ -197,6 +198,18 @@ class Test_Branch(unittest.TestCase):
         self.assertRaises(IndexError, branch.__getitem__, 3)
         self.assertRaises(TypeError, branch.__getitem__, 'not an integer')
 
+    def test_is_node_on_branch(self):
+        tip1 = BigraphNode(payload=1)
+        branch = Branch(tip=tip1)
+        tip2 = BigraphNode(payload=2)
+        tip3 = BigraphNode(payload=3)
+        branch.add_node(node=tip2)
+        branch.add_node(node=tip3)
+        # Branch should now look like (from beginning to tip): tip1->tip2->tip3
+        self.assertTrue(branch.is_node_on_branch(tip2))
+        nonbranch_node = BigraphNode(payload=4)
+        self.assertFalse(branch.is_node_on_branch(nonbranch_node))
+
 
 class Test_Bigraph(unittest.TestCase):
     def test_init_property_getters(self):
@@ -246,6 +259,24 @@ class Test_Bigraph(unittest.TestCase):
         self.assertEqual(4, len(graph_nodes))
         exp_val = [graph.root, tip1, node1, branch2.tip_node]
         self.assertListEqual(exp_val, graph_nodes)
+
+    def test_get_nodes_branch(self):
+        graph = Bigraph()
+        branch1 = Branch(name='branch1')
+        tip1 = branch1.tip_node
+        node1 = BigraphNode(payload=1)
+        branch1.add_node(node1)
+        graph.add_branch(new_branch=branch1)
+        # branch1: graph.root -> (branch1 original tip node) -> node1 
+        branch2 = Branch(name='branch2')
+        graph.add_branch(at_node=node1, new_branch=branch2)
+        # branch2: graph.root -> (branch1 original tip node) -> node1 -> branch2.tip_node
+        self.assertEqual(branch2, graph.get_nodes_branch(branch2.tip_node))
+        # Test that a node shared amongst branches belongs to the first branch it is shared by.
+        self.assertEqual(branch1, graph.get_nodes_branch(node1))
+        # Test a node that isn't in the graph
+        nongraph_node = BigraphNode(payload=2)
+        self.assertEqual(None, graph.get_nodes_branch(nongraph_node))
 
 
 if __name__ == '__main__':

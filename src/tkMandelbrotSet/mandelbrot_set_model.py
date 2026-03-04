@@ -129,22 +129,26 @@ class MandelbrotSetModel(Model):
             raise MandelbrotSetNoPreviousZoomLocation
         return None
 
-    def forward(self):
+    def forward(self, index=-1):
         """
-        Move the current zoom location forward one location (node) in the zoom tree. If there is no next location,
-        then the current zoom location is not changed, and an exception (MandelbrotSetNoNextZoomLocation) is raised.
-        Note that as currently implemented, this method will always move forward to the LAST successor available, and
-        thus always along the most recently created branch.
+        Move the current zoom location forward one location (node) in the zoom tree, with index parameter being an index
+        into the list of successor nodes of the current node.
+        If there is no next location, then the current zoom location is not changed, and an exception (MandelbrotSetNoNextZoomLocation) is raised.
+        Note that if index<0 (default value) this method will move forward to the LAST successor available, and
+        thus along the most recently created branch.
         :return: None
         """
         # TODO: When this code is improved so that it is possible to move forward to any available successor,
         # then it will be necessary to update self._current_branch, based on which successor was chosen.
         sucs = self._current_node.get_successors()
-        if len(sucs) == 0:
+        if len(sucs) == 0 or index > len(sucs)-1:
             move_to_node = None
-        else:
+        elif index < 0:
             move_to_node = sucs[len(sucs)-1]
+        else:
+            move_to_node = sucs[index]
         if move_to_node is not None:
+            self._current_branch = self._zoom_graph.get_nodes_branch(move_to_node)
             self._current_node = move_to_node
             self.notify()
         else:
