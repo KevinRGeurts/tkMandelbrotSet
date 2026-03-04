@@ -76,6 +76,10 @@ class tkMandelbrotSetViewManager(tkViewManager):
         Handle updates from the model.
         :return None:
         """
+        # Show a wait cursor, since this is a long-ish operation.
+        self.master.master.config(cursor='watch')
+        self.master.master.update()
+
         model = self.getModel()
         x, y, z = model.get_current_node_plot_data()
 
@@ -85,6 +89,9 @@ class tkMandelbrotSetViewManager(tkViewManager):
         # Ask the plot widget to make the plot
         self._plot_widget.make_plot(x, y, z, avail_zooms)
 
+        # Put the cursor back to normal.
+        self.master.master.config(cursor='')
+
         return None
         
     def handle_plot_widget_update(self):
@@ -92,6 +99,10 @@ class tkMandelbrotSetViewManager(tkViewManager):
         Handle updates from MandelbrotSetPlotWidget widget.
         :return None:
         """
+        # Show a wait cursor, since this is a long-ish operation.
+        self.master.master.config(cursor='watch')
+        self.master.master.update()
+
         pw_state = self._plot_widget.get_state()
         widget_zoom = (pw_state[0], pw_state[1])
         model_zoom = (self.getModel().ul_corner, self.getModel().lr_corner)
@@ -109,6 +120,10 @@ class tkMandelbrotSetViewManager(tkViewManager):
             self._plot_widget.make_plot(x, y, z, avail_zooms)
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
+
+        # Put the cursor back to normal.
+        self.master.master.config(cursor='')
+
         return None
 
     def handle_zoom_nav_widget_update(self):
