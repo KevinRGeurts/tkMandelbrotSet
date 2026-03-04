@@ -5,7 +5,7 @@ Exported classes:
     MandelbrotSet: Class that can generate a Mandelbrot Set.
 
 Exported functions:
-    None
+    plot_mandelbrot_set: Function that creates a visualization of a Mandelbrot set using matplotlib.
 
 Exported exceptions:
     None
@@ -15,6 +15,9 @@ Exported exceptions:
 # standard library imports
 from array import array
 from math import floor
+
+# PyPi package imports
+import matplotlib.pyplot as plt
 
 # package imports
 from tkMandelbrotSet.memento import SetMemento
@@ -309,3 +312,24 @@ class MandelbrotSet(object):
         imag_index = subscript - (real_index * self.pts_real)
         # print(f"subscript: {subscript}, real index: {real_index}, imag index: {imag_index}")
         return self.get_iter_value_with_ri(real_index, imag_index)
+
+
+def plot_mandelbrot_set(x, y, z):
+    """
+    Plot the Mandelbrot set plot with calls to matplotlib.
+    :parameter x: real-axis (x) values as list of floats
+    :parameter y: imaginary-axis (y) values as list of floats
+    :parameter z: iterations for divergence at each point, as a list of lists of ints, in column major order, such that,
+                    z[j][i] = the zth value at the jth value of the imaginary axis and the ith value of the real axis
+    :return: None
+    """
+    # Create the plot for visualizing the set
+    ax=plt.axes()
+    ax.set_aspect("equal")
+    graph = ax.pcolormesh(x, y, z, cmap="nipy_spectral")
+    plt.colorbar(graph)
+    plt.xlabel("Real-Axis")
+    plt.ylabel("Imaginary-Axis")
+    # Show the plot
+    plt.show()
+    return None

@@ -7,8 +7,7 @@ Exported classes:
 
 Exported functions:
     __main__: Requests how user wishes to generate a Mandelbrot set
-    generate_for_text_plot: Gather input, generate a Mandelbrot set, create and print a TextPlot of the set
-    generate_for_heat_map: Gather input, generate a Mandelbrot set, create a display a matplotlip pcolormap of the set
+    generate_mandelbrot_set: Gather input, generate a Mandelbrot set, create a display a matplotlip pcolormap of the set
     launch_app: Launch MandelbrotSetApp instance, a tkinter app for displaying and interacting with the Mandelbrot set
     time_set_generation: Gather input, and time how long it takes to generate a Mandelbrot set
 
@@ -24,13 +23,9 @@ from array import array
 import timeit
 import tkinter as tk
 
-# PyPi package imports
-import matplotlib.pyplot as plt
-
 # local imports
-from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askForPathSave, askForPathSave, askForStr, askForMenuSelection
-from RheologyNetworkModelSimulator.qplot import TextPlot
-from tkMandelbrotSet.mandelbrot import MandelbrotSet
+from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askForMenuSelection
+from tkMandelbrotSet.mandelbrot import MandelbrotSet, plot_mandelbrot_set
 from tkMandelbrotSet.mandelbrot_set_app import MandelbrotSetApp
 from tkMandelbrotSet.bigraph import BigraphNode, Bigraph, Branch
 
@@ -54,48 +49,9 @@ def debug():
     return None
 
 
-def generate_for_text_plot():
+def generate_mandelbrot_set():
     """
-    Generate a Mandelbrot set and make a text plot.
-    """
-    
-    # Collect from user required inputs
-    ulr = askForFloat('Enter the upper-left corner real value (suggest -2.0)')
-    uli = askForFloat('Enter the upper-left corner imaginary value (suggest 2.0)')
-    lrr = askForFloat('Enter the lower-right corner real value (suggest 2.0)')
-    lri = askForFloat('Enter the lower-right corner imaginary value (suggest -2.0)')
-    nr = askForInt('Enter the number of points per real side (suggest 60)', minimum=2)
-    ni = askForInt('Enter the number of points per imaginary side (suggest 20)', minimum=2)
-
-    
-    # Generate the Mandelbrot set
-    ms = MandelbrotSet(complex(ulr,uli),complex(lrr,lri),nr,ni)
-    ms.generate_mandelbrot_set()
-
-    # Obtain the mandelbrot set values, and package them for plotting
-    _x=array('f')
-    _y=array('f')
-    _sym=array('u')
-    _sym.append('X')
-    for i in range(nr):
-        for j in range(ni):
-            pnt_res = ms.get_iter_value_with_ri(i,j)
-            if pnt_res[0] >= ms.max_iters:
-                # We will only plot points that did not diverge
-                _x.append(pnt_res[1])
-                _y.append(pnt_res[2])
-
-    # Create the TextPlot for visualizing the set
-    tp = TextPlot(ncur=1, npts=len(_x), x=[_x], y=[_y], symbol=_sym, titl1='Mandelbrot Set')
-
-    # Print the TextPlot of the Mandelbrot Set
-    print(str(tp))
-
-    return None
-
-def generate_for_heat_map():
-    """
-    Generate a Mandelbrot set and make a heat map using Matplotlib.
+    Generate a Mandelbrot set and visualize it using Matplotlib.
     """
     
     # Collect from user required inputs
@@ -114,16 +70,8 @@ def generate_for_heat_map():
     # Get the plotting data
     (_x, _y, _z) = ms.get_plot_data(True)
 
-    # Create the plot for visualizing the set
-    ax=plt.axes()
-    ax.set_aspect("equal")
-    graph = ax.pcolormesh(_x, _y, _z, cmap="nipy_spectral")
-    plt.colorbar(graph)
-    plt.xlabel("Real-Axis")
-    plt.ylabel("Imaginary-Axis")
-
-    # Show the plot
-    plt.show()
+    # Visualize the Mandelbrot set
+    plot_mandelbrot_set(_x, _y, _z)
 
     return None
 
@@ -166,7 +114,7 @@ if __name__ == '__main__':
     
     # Build a query for the user to obtain their choice of how to user the simulator
     query_preface = 'How do you want to generate a Mandelbrot set?'
-    query_dic = {'q':'Quit', '1':'Generate for text plot', '2':'Time set generation', '3':'Generate for heat map', '4':'Launch Mandelbrot Set app', 'd':'Debug Scenario'}
+    query_dic = {'q':'Quit', '1':'Time the generation of Mandelbrot set', '2':'Generate a Mandelbrot set', '3':'Launch Mandelbrot Set app', 'd':'Debug Scenario'}
     response = askForMenuSelection(query_preface, query_dic)
     
     while response != 'q':
@@ -174,15 +122,12 @@ if __name__ == '__main__':
         match response:
             
             case '1':
-                generate_for_text_plot()
-
-            case '2':
                 time_set_generation()
 
-            case '3':
-                generate_for_heat_map()
+            case '2':
+                generate_mandelbrot_set()
 
-            case '4':
+            case '3':
                 launch_app()
                                 
             case 'd':
