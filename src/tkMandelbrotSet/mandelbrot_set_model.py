@@ -1,5 +1,5 @@
 """
-This module defines the MandelbrotSetModel class, which is the Model object for the MandelbrotSetApp.
+This module defines the MandelbrotSetModel class, which is the Model object for the MandelbrotSetApp, following the tkAppFramework.
 
 Exported classes:
     MandelbrotSetModel: Class that is the Model object for the MandelbrotSetApp.
@@ -25,7 +25,7 @@ from tkAppFramework.model import Model
 
 class MandelbrotSetModel(Model):
     """
-    Class is the Model object for the MandelbrotSetApp.
+    Class is the Model object for the MandelbrotSetApp, following the tkAppFramework.
     """
     def __init__(self):
         """
@@ -44,10 +44,16 @@ class MandelbrotSetModel(Model):
 
     @property
     def ul_corner(self):
+        """
+        Return the upper left corner of the Mandelbrot set in the complex plane, as complex.
+        """
         return self._mandelbrot_set.ul_corner
 
     @property
     def lr_corner(self):
+        """
+        Return the lower right corner of the Mandelbrot set in the complex plane, as complex.
+        """
         return self._mandelbrot_set.lr_corner
 
     def get_current_node_predecessor_ID(self):
@@ -138,8 +144,6 @@ class MandelbrotSetModel(Model):
         thus along the most recently created branch.
         :return: None
         """
-        # TODO: When this code is improved so that it is possible to move forward to any available successor,
-        # then it will be necessary to update self._current_branch, based on which successor was chosen.
         sucs = self._current_node.get_successors()
         if len(sucs) == 0 or index > len(sucs)-1:
             move_to_node = None
@@ -158,7 +162,10 @@ class MandelbrotSetModel(Model):
     def set_corners(self, ul_corner=complex(real=-2.0, imag=2.0), lr_corner=complex(real=1.0, imag=-2.0)):
         """
         Create a new zoom location, and set both corners of the complex plane to be visualized.
-        Note that currently this new zoom location is always added as the new tip of the only branch.
+        Note that this will:
+            (1) add the new zoom location as the new tip of a branch, if we are zooming from the current tip of a branch, or
+            (2) split a branch, create a new branch, and make the new zoom location the tip of the new brach, if we
+                are zooming from a location along a current branch
         :parameter ul_corner: The upper left corner of the complex plane to be visualized, complex
         :parameter lr_corner: The lower right corner of the complex plane to be visualized, complex
         :return: None

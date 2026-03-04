@@ -71,6 +71,7 @@ class MandelbrotSet(object):
     def set_memento(self, memento=SetMemento()):
         """
         Use the argument memento to restore the "state" of the MandelbrotSet object to the snapshot stored by the memento.
+        :parameter memento: The memento object from which to restore the state of the MandelbrotSet object, as SetMemento object.
         :return: None
         """
         state = memento.get_state()
@@ -106,6 +107,7 @@ class MandelbrotSet(object):
     @ul_corner.setter
     def ul_corner(self, value):
         """
+        Sets the uppoer left corner of the complex plane to be visualized.
         :parameter value: as complex
         """
         assert(type(value)==complex)
@@ -122,6 +124,7 @@ class MandelbrotSet(object):
     @lr_corner.setter
     def lr_corner(self, value):
         """
+        Sets the lower right corner of the complex plane to be visualized.
         :parameter value: as complex
         """
         assert(type(value)==complex)
@@ -192,7 +195,6 @@ class MandelbrotSet(object):
             result = self._point_iterator(complex(self._indices_to_point(real_index, imag_index)))
         return result
             
-
     def get_iter_value_with_ri(self, real_index, imag_index):
         """
         Returns the number of iterations it took for the point at (real_index, img_index) to diverge,
@@ -217,11 +219,9 @@ class MandelbrotSet(object):
         # If the set has already been generated, then it won't be regenerated.
         if not self._set_generated:
             for i in range(self._pts_real):
-                # print(f"generating set for real index {i}")
                 for j in range(self._pts_imag):
                     c = self._indices_to_point(i,j)
                     self._mandelbrot_set[i].append(self._point_iterator(c))
-                    # print(f"i={i}, j={j}, c={str(c)}, iters={self._mandelbrot_set[i][j]}")
             self._set_generated = True
         return None
 
@@ -286,7 +286,6 @@ class MandelbrotSet(object):
         z = complex(real=0.0, imag=0.0)
         for i in range(self._max_iters):
             z = z**2 + c
-            # print(f"iter = {i}, z = {str(z)}, abs(z) = {abs(z)}")
             if abs(z) > self._z_max:
                 return i
         return self._max_iters
@@ -304,16 +303,18 @@ class MandelbrotSet(object):
         Enable iteration through the Mandelbrot set using a single subscript. This will extract items in real-major-order,
         such that the real value varies most slowly. Or said another way, all imaginary values with be extracted for the
         first real value, and then the real value will be incremented to the next value.
+        :parameter subscript: Selects the element to get, as integer
         :return: Tuple (iterarions to diverge, real-axis coordinate, imaginary-axis coordinate), as (integer, float, float)
         """
         if type(subscript)!=int: raise TypeError
         if subscript > (len(self)-1): raise IndexError
         real_index = floor(subscript/self.pts_real)
         imag_index = subscript - (real_index * self.pts_real)
-        # print(f"subscript: {subscript}, real index: {real_index}, imag index: {imag_index}")
         return self.get_iter_value_with_ri(real_index, imag_index)
 
 
+# TODO: Consider changing this function so that it does NOT use the matplotlib implicit pyplot interface,
+# but rather have it use the explicit Axes interface.
 def plot_mandelbrot_set(x, y, z):
     """
     Plot the Mandelbrot set plot with calls to matplotlib.

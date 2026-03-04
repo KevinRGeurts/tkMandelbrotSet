@@ -8,7 +8,7 @@ Exported Exceptions:
     None    
  
 Exported Functions:
-    None
+    __main__: Starts Tcl interpreter and launches Mandelbrot set application.
 
 Scripting:
     To run the MandelbrotSetApp, execute this module as the main program. This will create an instance of the MandelbrotSetApp and start its event loop.
@@ -58,7 +58,7 @@ class MandelbrotSetApp(tkApp):
     def _createModel(self):
         """
         Factory method to create the model for the app.
-        :return: The model for the app, MandelbrotSet object
+        :return: The model for the app, MandelbrotSetModel object
         """
         return tkMandelbrotSet.mandelbrot_set_model.MandelbrotSetModel()
 

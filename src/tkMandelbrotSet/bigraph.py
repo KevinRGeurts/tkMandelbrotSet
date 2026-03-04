@@ -1,13 +1,24 @@
 """
 This python module defines classes for representing a bigraph data structure.
+
+Exported classes:
+    BigraphNode: Class that represents a node in a bigraph data structure.
+    Bigraph: Class represents a bigraph data structure.
+    Branch: Class represents a branch in a bigraph data structure.
+
+
+Exported functions:
+    None
+
+Exported exceptions:
+    None
 """
+
 
 # standard imports
 from uuid import uuid4
-from xml.sax.handler import property_declaration_handler
 
 # local imports
-
 
 
 class BigraphNode(object):
@@ -18,7 +29,7 @@ class BigraphNode(object):
         """
         :parameter predecssor: predessor node in the bigraph, BigraphNode object
         :parameter successor: successor node in the bigraph, BigraphNode object
-        :parameter payload: data store for this node in the bigraph, any Object
+        :parameter payload: data store for this node in the bigraph, any object
         """
         # Create a unique ID for the node
         self._node_ID = uuid4()
@@ -40,16 +51,24 @@ class BigraphNode(object):
 
     @property
     def nodeID(self):
+        """
+        Return the unique ID of the node, as UUID.
+        """
         return self._node_ID
     
     @property
     def predecessor(self):
+        """
+        Return the predecessor node of this node, as BigraphNode object. None if this node has no predecessor.
+        """
         return self._predecessor
 
     @predecessor.setter
     def predecessor(self, value):
         """
+        Set the predecessor node of this node.
         :parameter value: Predecessor bigraph node, as BigraphNode object
+                          Note: value=None can be used to indicate that this node has no predecessor.
         """
         if value is not None:
             assert(isinstance(value, BigraphNode))
@@ -59,7 +78,7 @@ class BigraphNode(object):
     def get_successors(self):
         """
         Return a list of this nodes' successor nodes.
-        :return: [successor nodes]
+        :return: List of successor nodes, as [BigraphNode objects]
         """
         return list(self._successors)
 
@@ -69,6 +88,7 @@ class BigraphNode(object):
         Returns the first BigraphNode object in the list of successors of this BigraphNode. If there are no
         successors, then return None.
         Thus it handles the typical case of one successor only.
+        :return: First successor node of this node, as BigraphNode object
         """
         if len(self._successors)>0:
             return self._successors[0]
@@ -89,11 +109,16 @@ class BigraphNode(object):
 
     @property
     def payload(self):
+        """
+        Return this node's "payload" or data object, as any object.
+        :return: Node's payload, as any object
+        """
         return self._payload
 
     @payload.setter
     def payload(self, value):
         """
+        Set this node's "payload" or data object.
         :parameter value: Bigraph node data, as any object
         """
         self._payload = value
@@ -154,12 +179,16 @@ class Bigraph(object):
 
     @property
     def root(self):
+        """
+        Return the root node of this bigraph.
+        :return: The root node of this bigraph, as BigraphNode object
+        """
         return self._root
 
     @property
     def branches(self):
         """
-        Return a list of the branches in the bigraph data structure, as [Branch]
+        Return a list of the branches in the bigraph data structure, as [Branch objects]
         """
         return list(self._branches)
 
@@ -211,13 +240,6 @@ class Bigraph(object):
         :parameter root: The node of the bigraph at which to start the traverse, as BigraphNode object
         :return: List of nodes in the bigraph, as [BigraphNode objects]
         """
-        # result = []
-        # current_node = root
-        # while current_node is not None:
-        #     result.append(current_node)
-        #     for suc in current_node.get_successors():
-        #         result += self.traverse(suc)
-        # return result
         result = []
         current_node = root
         if current_node is not None:
@@ -229,6 +251,8 @@ class Bigraph(object):
     def __getitem__(self, index):
         """
         Return the branch index-th branch in the bigraph, as Branch object
+        :parameter index: Selects which branch to get, as integer
+        :return: Index-th branch in the bigraph, as Branch object
         """
         return self._branches[index]
 
@@ -262,23 +286,43 @@ class Branch(BigraphNode):
 
     @property
     def branchID(self):
+        """
+        Get the unique ID of the branch.
+        :return: Unique branch ID, as UUID
+        """
         return self._branch_ID
         
     @property
     def name(self):
+        """
+        Get the name of the branch.
+        :return: Branch name, as string
+        """
         return self._name
 
     @name.setter
     def name(self, value):
+        """
+        Set the name of the branch.
+        :parameter value: The new branch name, as string
+        """
         assert(type(value)==str)
         self._name = value
 
     @property
     def tip_node(self):
+        """
+        Get the tip node of the branch.
+        :return: Tip node of branch, as BigraphNode object
+        """
         return self._tip_node
 
     @tip_node.setter
     def tip_node(self, value):
+        """
+        Set the tip node of the branch.
+        :parameter value: Branch's new tip node, as BigraphNode object.
+        """
         assert(isinstance(value, BigraphNode))
         self._tip_node = value
 
@@ -313,7 +357,7 @@ class Branch(BigraphNode):
 
     def __len__(self):
         """
-        Return the number of nodes in the branch.
+        Return the number of nodes in the branch, as integer.
         """
         num_nodes = 0
         at_root = False
@@ -328,7 +372,10 @@ class Branch(BigraphNode):
 
     def __getitem__(self, subscript):
         """
-        Return the subsript-th node in the branch, where 0=tip node of the branch, as Branch object
+        Return the subsript-th node in the branch, where 0=tip node of the branch, as BigraphNode object.
+        The tip node of the branch is node 0.
+        :parameter subscript: Selects the node to return from the branch, as integer
+        :return: Subscript-th node in the branch, as BigrahNode object
         """
         if type(subscript)!=int: raise TypeError
         if subscript > (len(self)-1): raise IndexError

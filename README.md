@@ -52,5 +52,8 @@ plot_mandelbrot_set(x, y, z)
 Unit tests for tkMandelbrotSet have filenames starting with test_. To run the unit tests,
 type ```python -m unittest discover -s .\..\tests -v``` in a terminal window in the project directory.
 
+While the unit tests are executing, a few tkinter windows will appear and disappear, as the application
+is being tested.
+
 ## License
 MIT License. See the LICENSE file for details

@@ -1,16 +1,15 @@
 """
 This module's __main__ first asks the user how they want to generate a Mandelbrot set, then
-collects input interactively from the user, generates a Mandelbrot set, and prints some results.
+collects input interactively from the user, generates a Mandelbrot set, and outputs results.
 
 Exported classes:
     None
 
 Exported functions:
     __main__: Requests how user wishes to generate a Mandelbrot set
-    generate_mandelbrot_set: Gather input, generate a Mandelbrot set, create a display a matplotlip pcolormap of the set
+    generate_mandelbrot_set: Gather input, generate a Mandelbrot set, create and display a matplotlip pcolormap of the set
     launch_app: Launch MandelbrotSetApp instance, a tkinter app for displaying and interacting with the Mandelbrot set
     time_set_generation: Gather input, and time how long it takes to generate a Mandelbrot set
-
     debug: Run a debugging scenario (currently does nothing).
 
 Exported exceptions:
@@ -19,7 +18,6 @@ Exported exceptions:
 
 
 # standard imports
-from array import array
 import timeit
 import tkinter as tk
 
@@ -33,6 +31,7 @@ from tkMandelbrotSet.bigraph import BigraphNode, Bigraph, Branch
 def debug():
     """
     Run a debugging scenario.
+    :return: None
     """
     graph = Bigraph()
     branch1 = Branch(name='branch1')
@@ -51,7 +50,8 @@ def debug():
 
 def generate_mandelbrot_set():
     """
-    Generate a Mandelbrot set and visualize it using Matplotlib.
+    Generate a Mandelbrot set and visualize it using matplotlib.
+    :return: None
     """
     
     # Collect from user required inputs
@@ -79,6 +79,7 @@ def generate_mandelbrot_set():
 def launch_app():
     """
     Launch the Mandelbrot Set App.
+    :return: None
     """
     # Get Tcl interpreter up and running and get the root widget
     root = tk.Tk()
@@ -92,6 +93,7 @@ def launch_app():
 def time_set_generation():
     """
     Time how long it takes to generate a Mandelbrot set.
+    :return: None
     """
 
     nt = askForInt('Enter the number of times to generate the set (suggest 100)', minimum=1, maximum=100)
@@ -135,4 +137,3 @@ if __name__ == '__main__':
         
         print('--------------------')
         response = askForMenuSelection(query_preface, query_dic)
-

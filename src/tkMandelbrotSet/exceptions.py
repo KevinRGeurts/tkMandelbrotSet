@@ -7,6 +7,7 @@ Exported Classes:
 Exported Exceptions:
     MandelbrotSetError - Base exception class for all custom exceptions specific to tkMandelbrotSet package.
     MandelbrotSetNoPreviousZoomLocation - Custom exception to be raised when there is no previous zoom location to back up to.
+    MandelbrotSetNoNextZoomLocation - Custom exception to be raised when there is no next zoom location to move forward to.
 
 Exported Functions:
     None
@@ -31,6 +32,7 @@ class MandelbrotSetNoPreviousZoomLocation(MandelbrotSetError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         # self.X_info = kwargs.get('X_info')
+
 
 class MandelbrotSetNoNextZoomLocation(MandelbrotSetError):
     """

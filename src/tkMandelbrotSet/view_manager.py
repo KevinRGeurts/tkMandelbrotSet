@@ -4,6 +4,8 @@ Acts as Observer, and handles the interactions between the Mandelbrot set app's 
 
 Exported Classes:
     tkMandelbrotSetViewManager -- Concrete implementation of tkViewManager for a Mandelbrot set visualization application.
+    MandelbrotSetPlotWidget -- Tkinter widget that provides a matplotlib visualization of a Mandelbrot set
+    MandelbrotSetZoomNavigationWidget -- Tkinter widget that provides widget's for navigating a tree of Mandelbrot set zoom locations
 
 Exported Exceptions:
     None    
@@ -47,7 +49,7 @@ class tkMandelbrotSetViewManager(tkViewManager):
         
     def _CreateWidgets(self):
         """
-        Implementation of tkViewManager._CreateWidgets.
+        Implementation of tkViewManager._CreateWidgets().
         Sets up and registers the child widgets of the tkMandelbrotSetViewManager widget.
         :return None:
         """
@@ -268,7 +270,6 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         :parameter erelease: The matplotlib mouse button release event
         :return: None
         """
-        
         # Need to see the zoom rectangle, so make visible, so it shows up on the plot.
         for artist in self._zoom_rectangle.artists :
             artist.set_visible(False)
@@ -314,7 +315,7 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
 
     def get_state(self):
         """
-        Returns the zoom corners of the widget, the selected colormap, and if zoom locations should be indicated.
+        Returns the zoom corners of the widget, the selected colormap, and if zoom locations should be visually indicated.
         :return: Tuple (upper-left corner, lower-right-corner, selected colormap, show zoom locations), as tuple (complex, complex, string boolean)
         """
         show_zooms = False
@@ -409,7 +410,7 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
 
     def _CreateWidgets(self):
         """
-        This method is called by __init__() to create the child widgets of the MandelbrotSetMementoWidget.
+        This method is called by __init__() to create the child widgets of the MandelbrotSetZoomNavigationWidget.
         :return None:
         """
         self._possible_moves = ['None', 'Home', 'Back', 'Forward']
@@ -439,8 +440,10 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
 
     def _populateForwardMenu(self, avail_zooms=[]):
         """
-        Utility function for population Forward menu with commands.
+        Utility function for populating Forward menu with commands.
         :parameter avail_zooms: List of available zoom locations.
+                                Note: It actually makes no difference what objects are in the list to represent available zooms.
+                                      The only thing that matters is the numnber of objects in the list.
         :return: None
         """
         # Remove any current commands from the menu
