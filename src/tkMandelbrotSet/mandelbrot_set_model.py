@@ -111,6 +111,16 @@ class MandelbrotSetModel(Model):
         plot_data = self._mandelbrot_set.get_plot_data()
         return plot_data
 
+    def prune(self):
+        """
+        Prune the zoom tree at the current zoom location.
+        :return: None
+        """
+        # Set the current branch to the branch that will be retained after the prune.
+        self._current_branch = self._zoom_graph.get_nodes_branch(self._current_node)
+        self._zoom_graph.prune(self._current_node)
+        return None
+    
     def home(self):
         """
         Move the current zoom location back to the root of zoom tree.

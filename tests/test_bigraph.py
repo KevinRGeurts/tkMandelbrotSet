@@ -36,6 +36,19 @@ class Test_BigraphNode(unittest.TestCase):
         # Getter should still get the first successor added
         self.assertEqual(suc, node.successor)
 
+    def test_remove_successors(self):
+        suc = BigraphNode(payload=1)
+        node = BigraphNode()
+        node.successor = suc
+        # Add a second, unique successor to node
+        suc2 = BigraphNode(payload=2)
+        node.successor = suc2
+        # Remove both successors from node
+        node.remove_successors()
+        self.assertEqual(0, len(node.get_successors()))
+        self.assertEqual(None, suc.predecessor)
+        self.assertEqual(None, suc2.predecessor)
+
     def test_get_successors(self):
         suc = BigraphNode(payload=1)
         node = BigraphNode()
@@ -171,6 +184,34 @@ class Test_Branch(unittest.TestCase):
         # tip1 should not have a prdecessor
         self.assertEqual(None, tip1.predecessor)
 
+    def test_prune(self):
+        tip1 = BigraphNode(payload=1)
+        branch = Branch(tip=tip1)
+        tip2 = BigraphNode(payload=2)
+        tip3 = BigraphNode(payload=3)
+        tip4 = BigraphNode(payload=4)
+        tip5 = BigraphNode(payload=5)
+        branch.add_node(node=tip2)
+        branch.add_node(node=tip3)
+        branch.add_node(node=tip4)
+        branch.add_node(node=tip5)
+        # Branch should now look like (from beginning to tip): tip1->tip2->tip3->tip4->tip5
+        # Pruning at the tip node should do nothing
+        branch.prune(tip5)
+        self.assertEqual(tip5, branch.tip_node)
+        self.assertEqual(5, len(branch))
+        # Now prune below the tip node
+        branch.prune(tip2)
+        self.assertEqual(tip2, branch.tip_node)
+        self.assertEqual(2, len(branch))
+        # Check that tip3, tip4, tip5 have been properly prepared for garbage collection
+        self.assertEqual(None, tip3.predecessor)
+        self.assertEqual(None, tip3.successor)
+        self.assertEqual(None, tip4.predecessor)
+        self.assertEqual(None, tip4.successor)
+        self.assertEqual(None, tip5.predecessor)
+        self.assertEqual(None, tip5.successor)
+
     def test_len(self):
         tip1 = BigraphNode(payload=1)
         branch = Branch(tip=tip1)
@@ -277,6 +318,25 @@ class Test_Bigraph(unittest.TestCase):
         # Test a node that isn't in the graph
         nongraph_node = BigraphNode(payload=2)
         self.assertEqual(None, graph.get_nodes_branch(nongraph_node))
+
+    def test_prune(self):
+        graph = Bigraph()
+        branch1 = Branch(name='branch1')
+        tip1 = branch1.tip_node
+        node1 = BigraphNode(payload=1)
+        branch1.add_node(node1)
+        node2 = BigraphNode(payload=2)
+        branch1.add_node(node2)
+        graph.add_branch(new_branch=branch1)
+        # branch1: graph.root -> (branch1 original tip node) -> node1 -> node2
+        branch2 = Branch(name='branch2')
+        graph.add_branch(at_node=node1, new_branch=branch2)
+        # branch2: graph.root -> (branch1 original tip node) -> node1 -> branch2.tip_node
+        # Prune the tree at (branch1 original tip node)
+        graph.prune(tip1)
+        self.assertEqual(1, len(graph)) # Graph has one remaining branch
+        self.assertEqual(2, len(graph[0])) # Length of remaining branch is two nodes
+
 
 
 if __name__ == '__main__':

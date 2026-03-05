@@ -35,15 +35,20 @@ def debug():
     """
     graph = Bigraph()
     branch1 = Branch(name='branch1')
+    tip1 = branch1.tip_node
     node1 = BigraphNode(payload=1)
     branch1.add_node(node1)
+    node2 = BigraphNode(payload=2)
+    branch1.add_node(node2)
     graph.add_branch(new_branch=branch1)
-    # branch1: graph.root -> (branch1 original tip node) -> node1 
+    # branch1: graph.root -> (branch1 original tip node) -> node1 -> node2
     branch2 = Branch(name='branch2')
     graph.add_branch(at_node=node1, new_branch=branch2)
     # branch2: graph.root -> (branch1 original tip node) -> node1 -> branch2.tip_node
-    graph_nodes = graph.traverse(graph.root)
-    print(f"List of nodes in tree: {graph_nodes}")
+    # Prune the tree at (branch1 original tip node)
+    graph.prune(tip1)
+    assert(len(graph)==1) # Graph has one remaining branch
+
 
     return None
 

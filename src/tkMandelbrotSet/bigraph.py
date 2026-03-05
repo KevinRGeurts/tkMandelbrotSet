@@ -82,6 +82,19 @@ class BigraphNode(object):
         """
         return list(self._successors)
 
+    def remove_successors(self):
+        """
+        Remove all the successors of the node. Those successor's predecessor will be set to None.
+        :return: None
+        """
+        # First, each successor must have it's predecessor set to None, so that the successors don't continue to
+        # link back to this node.
+        for suc in self._successors:
+            suc.predecessor = None
+        # Second, clear this node's successor list.
+        self._successors.clear()
+        return None
+
     @property
     def successor(self):
         """
@@ -248,6 +261,35 @@ class Bigraph(object):
                 result += self.traverse(suc)
         return result
 
+    def prune(self, node=None):
+        """
+        Prune the tree by removing all nodes from parameter node successor(s) out to and including the tip nodes of all
+        successive branches. Thus parameter node will become the new tip of the branch. If the node has multiple successors,
+        that is, if the branch split's to form more branches, all branches above the current node will be "pruned off".
+        
+        Note: The branch that will be retained will be the first branch that contains the parameter node. 
+        
+        :parameter node: The node above which the pruning will occur, as BigraphNode object
+        :return: None
+        """
+        assert(isinstance(node, BigraphNode))
+        # Determine all the branches in the graph which containe the parameter node. Only one of these branches will be retained
+        # in the tree when the prunning is done.
+        pruned_branches = []
+        for br in self._branches:
+            if br.is_node_on_branch(node):
+                pruned_branches.append(br)
+        # Do the pruning
+        if len(pruned_branches) > 0:
+            pruned_branches[0].prune(node)
+        # Eliminate any orphaned branches from the graph
+        if len(pruned_branches) > 1:
+            for i in range(1,len(pruned_branches)):
+                br = pruned_branches[i]
+                br._tip_node = None # To enable BigraphNode garbage collection
+                self._branches.remove(br)
+        return None
+
     def __getitem__(self, index):
         """
         Return the branch index-th branch in the bigraph, as Branch object
@@ -326,6 +368,35 @@ class Branch(BigraphNode):
         assert(isinstance(value, BigraphNode))
         self._tip_node = value
 
+    def prune(self, node=None):
+        """
+        Prune the branch by removing all nodes from parameter node successor(s) out to and including the tip node of the
+        branch. Thus parameter node will become the new tip of the branch. If the node has multiple successors, that is,
+        if the branch split's to form more branches, all branches above the current node will be "pruned off".
+        :parameter node: The node above which the pruning will occur, as BigraphNode object
+        :return: None
+        """
+        assert(isinstance(node, BigraphNode))
+        # If parameter node IS the tip node of the branch, then do nothing.
+        if self.tip_node != node:
+            # Store parameter node's successors, for later use
+            sucs = node.get_successors()
+            # Remove node's successors, to start the prune
+            node.remove_successors()
+            # Set tip node of branch to parameter node
+            self.tip_node = node
+            # This completes the pruning operation as far as the remaining branch goes.
+            # What remains to be done is to set to None the predecessors and successors of all the pruned off nodes,
+            # so that the nodes can be garbage collected. (Otherwise, since successors reference predecessors which reference
+            # successors, the pruned off nodes will never be garbage collected.)
+            for suc in sucs:
+                # Use Bigraph classes' traverse() method to create a list of all nodes above each successor in the tree
+                pruned_nodes = Bigraph().traverse(suc)
+                for pn in pruned_nodes:
+                    pn.predecessor = None
+                    pn.remove_successors()
+        return None
+        
     def add_node(self, node=None):
         """
         Add a node at the tip of the bigraph branch.

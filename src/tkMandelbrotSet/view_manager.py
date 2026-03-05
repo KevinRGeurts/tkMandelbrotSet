@@ -19,7 +19,7 @@ Exported Functions:
 import tkinter as tk
 from tkinter import ttk
 from functools import partial
-from turtle import color
+from tkinter.messagebox import askokcancel
 
 # 3rd party package imports (e.g., from PyPi)
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -143,6 +143,11 @@ class tkMandelbrotSetViewManager(tkViewManager):
                 self.getModel().rewind()
             case 'Forward':
                 self.getModel().forward(nav_index)
+            case 'Prune':
+                # Confirm prune operation, since it cannot be undone.
+                response = askokcancel(title='Confirm Operation', message='Are you sure you wish to prune here? Pruning cannot be undone.')
+                if response:
+                    self.getModel().prune()
 
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
@@ -171,8 +176,11 @@ class tkMandelbrotSetViewManager(tkViewManager):
         back_disabled = False
         if zoomIDs[0].int==0x0: back_disabled=True
         forward_disabled = False
-        if len(zoomIDs[1])<1: forward_disabled=True
-        self._zoom_nav_widget.disable(back_disabled, forward_disabled)
+        prune_disabled = False
+        if len(zoomIDs[1])<1:
+            forward_disabled=True
+            prune_disabled=True
+        self._zoom_nav_widget.disable(back_disabled, forward_disabled, prune_disabled)
         return None
     
     def _get_backward_forward_ids(self):
@@ -413,7 +421,7 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         This method is called by __init__() to create the child widgets of the MandelbrotSetZoomNavigationWidget.
         :return None:
         """
-        self._possible_moves = ['None', 'Home', 'Back', 'Forward']
+        self._possible_moves = ['None', 'Home', 'Back', 'Forward', 'Prune']
         self._requested_move = self._possible_moves[0] # So 'None'
         self._forward_index = 0
 
@@ -435,6 +443,11 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         # Forward menu button menu
         self._menu_forward = tk.Menu(self._mbtn_forward)
         self._mbtn_forward['menu'] = self._menu_forward
+
+        self._btn_prune = ttk.Button(self, text='Prune', command=self.OnPruneButtonClicked)
+        self._btn_prune.grid(column=3, row=0) # Grid-3
+        self.columnconfigure(3, weight=1) # Grid-3
+        self.rowconfigure(0, weight=1) # Grid-3
 
         return None
 
@@ -480,10 +493,18 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         self._set_state('Back')
         return None
 
+    def OnPruneButtonClicked(self):
+        """
+        Handle click of the Prune button
+        :return: None
+        """
+        self._set_state('Prune')
+        return None
+
     def _set_state(self, state_string, state_index=-1):
         """
         Set the "move" that the user requests.
-        :parameter state_string: One string from list ['None', 'Home', 'Back', 'Forward'], as string
+        :parameter state_string: One string from list ['None', 'Home', 'Back', 'Forward', 'Prune'], as string
         :parameter state_index: Integer indicating which forward zoom path was requested, as integer
         :return: None
         """
@@ -498,15 +519,16 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
     def get_state(self):
         """
         Returns the "move" that the user requested.
-        :return: Tuple (One string from list ['None', 'Home', 'Back', 'Forward'], index of requested forward zoom), as (string, integer)
+        :return: Tuple (One string from list ['None', 'Home', 'Back', 'Forward', 'Prune'], index of requested forward zoom), as (string, integer)
         """
         return (self._requested_move, self._forward_index)
 
-    def disable(self, back_disabled=True, forward_disabled=True):
+    def disable(self, back_disabled=True, forward_disabled=True, prune_disabled=True):
         """
         Used to set if widget's 'back' and 'forward' buttons are enabled or disabled.
         :parameter back_disabled: True if the widget's 'back' button should be disabled, False if it should be enabled, boolean
-        :parameter forward_disabled: True if the widget's 'forward' button should be disabled, False if it should be enabled, boolean
+        :parameter forward_disabled: True if the widget's 'forward' menu button should be disabled, False if it should be enabled, boolean
+        :parameter prune_disabled: True if the widget's 'prune' button should be disabled, False if it should be enabled, boolean
         :return None:
         """
         # Handle back button
@@ -519,4 +541,9 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
             self._mbtn_forward.state(['disabled'])
         else:
             self._mbtn_forward.state(['!disabled'])
+        # Handle prune button
+        if prune_disabled:
+            self._btn_prune.state(['disabled'])
+        else:
+            self._btn_prune.state(['!disabled'])
         return None

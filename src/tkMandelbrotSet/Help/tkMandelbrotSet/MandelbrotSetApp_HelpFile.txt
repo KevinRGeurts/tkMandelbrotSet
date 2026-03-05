@@ -7,6 +7,7 @@ Menu Bar Usage:
 (3) To see information about the Mandelbrot Set application, select Help | About... from the menu bar.
 
 Note: File | Open..., File | Save..., and File | Save As... choices from the menu bar are NOT currently implemented.
+      File open and save dialogs will be presented, but no action will be taken when they are closed.
 
 Mandelbrot Set Application Usage:
 
@@ -18,5 +19,7 @@ Mandelbrot Set Application Usage:
     the matching number from the "Forward" button.
 (5) At any time clicking the "Home" button will return the visualization to the starting location which shows the complete
     Mandelbrot set.
-(6) Toggle the "Show Zoom Rectangles" checkbox to hide or show the red rectangles.
-(7) Select a different colormap to use for the visualization from the Colormap menu button.
+(6) Clicking the "Prune" button will remove all zoom locations that are visible in the current visualization. Since pruning
+    cannot be undone, you will be asked to confirm that you wish to prune.
+(7) Toggle the "Show Zoom Rectangles" checkbox to hide or show the red rectangles.
+(8) Select a different colormap to use for the visualization from the Colormap menu button.

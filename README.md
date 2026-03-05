@@ -3,7 +3,19 @@
 Source code: [GitHub](https://github.com/KevinRGeurts/tkMandelbrotSet)
 ---
 The tkMandelbrotSet package provides a python class MandelbrotSet for generating Mandelbrot sets. It also provides a
-tkinter application for visualizing and interacting with (e.g., zooming into) the Mandelbrot set.
+```tkinter``` application for visualizing and interacting with (e.g., zooming into) the Mandelbrot set.
+
+## Application Features:
+- The Mandelbrot set is visualized by a ```matplotlib pcolormesh``` figure.
+- The user can zoom into the Mandelbrot set visualization by clicking and dragging a zooming rectangle with the mouse.
+- The user can move backward and forward through the history of zooms.
+- Red numbered rectangles on the visualization indicate the location of previous zooms.
+- The user can "prune" the history of zooms to eliminate unwanted zoom locations.
+- The user can visualize the Mandelbrot set using different colormaps.
+
+## Application Known Issues and Limitations:
+1. File|Open..., File|Save, and File|Save As... menu bar options are not currently implemented. File open and save dialogs will
+   be presented, but no action will be taken when they are closed.
 
 ## References:
 1. https://en.wikipedia.org/wiki/Mandelbrot_set
@@ -52,7 +64,7 @@ plot_mandelbrot_set(x, y, z)
 Unit tests for tkMandelbrotSet have filenames starting with test_. To run the unit tests,
 type ```python -m unittest discover -s .\..\tests -v``` in a terminal window in the project directory.
 
-While the unit tests are executing, a few tkinter windows will appear and disappear, as the application
+While the unit tests are executing, a few ```tkinter``` windows will appear and disappear, as the application
 is being tested.
 
 ## License
