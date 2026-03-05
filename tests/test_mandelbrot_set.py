@@ -1,3 +1,7 @@
+"""
+This module contains unit tests for the MandelbrotSet class.
+"""
+
 # standard library imports
 import unittest
 from array import array

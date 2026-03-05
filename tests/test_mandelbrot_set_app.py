@@ -1,3 +1,7 @@
+"""
+This module contains unit tests for the MandelbrotSetApp class.
+"""
+
 # standard library imports
 import unittest
 import tkinter as tk

@@ -1,4 +1,7 @@
-# standard library imports
+"""
+This module contains unit tests for the MandelbrotSetModel class.
+"""
+
 import unittest
 from uuid import UUID
 

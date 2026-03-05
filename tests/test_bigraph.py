@@ -1,5 +1,5 @@
 """
-This module contains unit tests for the BigraphNode class.
+This module contains unit tests for the BigraphNode, Bigraph, and Branch classes.
 """
 
 
