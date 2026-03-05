@@ -315,22 +315,33 @@ class MandelbrotSet(object):
 
 # TODO: Consider changing this function so that it does NOT use the matplotlib implicit pyplot interface,
 # but rather have it use the explicit Axes interface.
-def plot_mandelbrot_set(x, y, z):
+def plot_mandelbrot_set(x, y, z, color_map='nipy_spectral', bare=False):
     """
     Plot the Mandelbrot set plot with calls to matplotlib.
     :parameter x: real-axis (x) values as list of floats
     :parameter y: imaginary-axis (y) values as list of floats
     :parameter z: iterations for divergence at each point, as a list of lists of ints, in column major order, such that,
                     z[j][i] = the zth value at the jth value of the imaginary axis and the ith value of the real axis
+    :parameter bare: If True, just show the data content part of the plot, suitable for exporting as a picture.
     :return: None
     """
     # Create the plot for visualizing the set
-    ax=plt.axes()
+    figure = plt.figure(figsize=(5,4), dpi=100) # figsize=(width in inches, height in inches)
+    ax = figure.add_subplot()
     ax.set_aspect("equal")
-    graph = ax.pcolormesh(x, y, z, cmap="nipy_spectral")
-    plt.colorbar(graph)
-    plt.xlabel("Real-Axis")
-    plt.ylabel("Imaginary-Axis")
+
+    # Make the plot
+    graph = ax.pcolormesh(x, y, z, cmap=color_map)
+
+    # Adjust plot for exporting just as a "bare" image, if requested
+    if not bare:
+        plt.colorbar(graph)
+        ax.set_xlabel("Real-Axis")
+        ax.set_ylabel("Imaginary-Axis")
+    else:
+        ax.set_axis_off()
+    
     # Show the plot
     plt.show()
+    
     return None

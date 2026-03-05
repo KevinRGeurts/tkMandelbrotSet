@@ -2,9 +2,11 @@ Mandelbrot Set Application Help
 
 Menu Bar Usage:
 
-(1) To exit the Mandelbrot Set application, select File | Exit from the menu bar.
-(2) To view this help content, select Help | View Help... from the menu bar.
-(3) To see information about the Mandelbrot Set application, select Help | About... from the menu bar.
+(1) To export the current Mandelbrot set visualization, select File | Export Plot... from the menu bar.
+    The normal matplotlib viewing window will be launched, and it's toolbar can be used to save the image.
+(2) To exit the Mandelbrot Set application, select File | Exit from the menu bar.
+(3) To view this help content, select Help | View Help... from the menu bar.
+(4) To see information about the Mandelbrot Set application, select Help | About... from the menu bar.
 
 Note: File | Open..., File | Save..., and File | Save As... choices from the menu bar are NOT currently implemented.
       File open and save dialogs will be presented, but no action will be taken when they are closed.

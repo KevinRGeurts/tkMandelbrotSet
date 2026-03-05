@@ -12,6 +12,7 @@ The tkMandelbrotSet package provides a python class MandelbrotSet for generating
 - Red numbered rectangles on the visualization indicate the location of previous zooms.
 - The user can "prune" the history of zooms to eliminate unwanted zoom locations.
 - The user can visualize the Mandelbrot set using different colormaps.
+- The user can export the Mandelbrot set visualization to an image file.
 
 ## Application Known Issues and Limitations:
 1. File|Open..., File|Save, and File|Save As... menu bar options are not currently implemented. File open and save dialogs will

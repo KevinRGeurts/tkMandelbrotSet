@@ -16,7 +16,7 @@ Exported exceptions:
 from uuid import UUID
 
 # package imports
-from tkMandelbrotSet.mandelbrot import MandelbrotSet
+from tkMandelbrotSet.mandelbrot import MandelbrotSet, plot_mandelbrot_set
 from tkMandelbrotSet.bigraph import Bigraph, BigraphNode, Branch
 from tkMandelbrotSet.memento import SetMemento
 from tkMandelbrotSet.exceptions import MandelbrotSetNoPreviousZoomLocation, MandelbrotSetNoNextZoomLocation
@@ -194,4 +194,15 @@ class MandelbrotSetModel(Model):
             self._current_branch = new_branch
         self._current_node = new_node
         self.notify()
+        return None
+
+    def export_plot(self):
+        """
+        Export the current Mandelbrot Set visualization plot to a graphics file. This will be done by launching
+        matplotlib's interactive figure window, which provides a toolbar button for saving to various formats of
+        image files.
+        :return: None
+        """
+        (x, y ,z) = self.get_current_node_plot_data()
+        plot_mandelbrot_set(x, y, z, bare=True)
         return None

@@ -40,7 +40,7 @@ class MandelbrotSetApp(tkApp):
         :param log_level: The logging level to set for the logger, e.g., logging.DEBUG, logging.INFO, etc.
         """
         help_file_path = sysconfig.get_path('data') + '\\Help\\tkMandelbrotSet\\MandelbrotSetApp_HelpFile.txt'
-        menu_dictionary = {'File':{'Open...':self.onFileOpen, 'Save':self.onFileSave, 'Save As...':self.onFileSaveAs, 'Exit':self.onFileExit}, \
+        menu_dictionary = {'File':{'Open...':self.onFileOpen, 'Save':self.onFileSave, 'Save As...':self.onFileSaveAs, 'Export Plot...':self.onExportPlot, 'Exit':self.onFileExit}, \
                            'Help':{'View Help...':self.onViewHelp,'About...':self.onHelpAbout}}
         info = AppAboutInfo(name='Mandelbrot Set', version='0.9.0', copyright='2026', author='Kevin R. Geurts',
                             license='MIT License', source='https://github.com/KevinRGeurts/tkMandelbrotSet',
@@ -61,6 +61,22 @@ class MandelbrotSetApp(tkApp):
         :return: The model for the app, MandelbrotSetModel object
         """
         return tkMandelbrotSet.mandelbrot_set_model.MandelbrotSetModel()
+
+    def onExportPlot(self):
+        """
+        Handle File | Export Plot... menu bar selection.
+        :return: None
+        """
+        # Show a wait cursor, since this is a long-ish operation.
+        self.master.config(cursor='watch')
+        self.master.update()
+
+        self.getModel().export_plot()
+
+        # Put the cursor back to normal.
+        self.master.config(cursor='')
+
+        return None
 
     def _setup_logging(self, log_level=logging.INFO):
         """
