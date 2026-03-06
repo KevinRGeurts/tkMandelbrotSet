@@ -108,7 +108,7 @@ class MandelbrotSetModel(Model):
         """
         memento = self._current_node.payload
         self._mandelbrot_set.set_memento(memento)
-        plot_data = self._mandelbrot_set.get_plot_data()
+        plot_data = self._mandelbrot_set.get_plot_data(normalize=False)
         return plot_data
 
     def prune(self):
@@ -204,5 +204,9 @@ class MandelbrotSetModel(Model):
         :return: None
         """
         (x, y ,z) = self.get_current_node_plot_data()
-        plot_mandelbrot_set(x, y, z, bare=True)
+        figure = plot_mandelbrot_set(x, y, z, bare=True)
+        # TODO: Watch for any odd exit's of the program and reconsider this approach to exporting if they occur.
+        # So no second (I think) GUI event loop is started, we will use matplotlib.figure.Figure.show(), and not
+        # matplotlib.pyplot.show(). 
+        figure.show()
         return None

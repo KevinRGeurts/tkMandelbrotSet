@@ -21,6 +21,9 @@ Exported exceptions:
 import timeit
 import tkinter as tk
 
+# PyPi package imports
+import matplotlib.pyplot as plt
+
 # local imports
 from UserResponseCollector.UserQueryCommand import askForInt, askForFloat, askForMenuSelection
 from tkMandelbrotSet.mandelbrot import MandelbrotSet, plot_mandelbrot_set
@@ -77,6 +80,9 @@ def generate_mandelbrot_set():
 
     # Visualize the Mandelbrot set
     plot_mandelbrot_set(_x, _y, _z)
+
+    # Show the plot
+    plt.show()
 
     return None
 
