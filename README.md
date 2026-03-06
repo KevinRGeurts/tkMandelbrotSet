@@ -44,6 +44,7 @@ Choose Help | View Help... from the application's menu bar to read instructions 
 ## Advanced Usage
 You can use the MandelbrotSet class to generate your own Mandelbrot set results.
 ```
+import matplotlib.pyplot as plt
 from tkMandelbrotSet.mandelbrot import MandelbrotSet, plot_mandelbrot_set
 
 # Generate the Mandelbrot set
@@ -59,6 +60,7 @@ ms.generate_mandelbrot_set()
 
 # Visualize the Mandelbrot set
 plot_mandelbrot_set(x, y, z)
+plt.show()
 ```
 
 ## Unittests
