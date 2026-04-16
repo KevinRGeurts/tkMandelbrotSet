@@ -1,0 +1,27 @@
+# Mandelbrot Set Application Help
+
+## Menu Bar Usage:
+
+1. To export the current Mandelbrot set visualization, select File | Export Plot... from the menu bar.
+   The normal matplotlib viewing window will be launched, and it's toolbar can be used to save the image.
+2. To exit the Mandelbrot Set application, select File | Exit from the menu bar.
+3. To view this help content, select Help | View Help... from the menu bar.
+4. To see information about the Mandelbrot Set application, select Help | About... from the menu bar.
+
+Note: File | Open..., File | Save..., and File | Save As... choices from the menu bar are NOT currently implemented.
+      File open and save dialogs will be presented, but no action will be taken when they are closed.
+
+## Mandelbrot Set Application Usage:
+
+1. To zoom into the Mandelbrot set, click and drag with the mouse in the Mandelbrot Set Visualization.
+2. After zooming in, use the "<< Back" button to move back to the previous visualization. Now a numbered red rectangle
+   will be drawn on the visualization to indicate the previous zoom location.
+3. Click and drag with the mouse in the visualization to zoom in at another location.
+4. Now if you back up, you will see two numbered red rectangles. You can return to one of those zoom locations by choosing
+   the matching number from the "Forward" button.
+5. At any time clicking the "Home" button will return the visualization to the starting location which shows the complete
+   Mandelbrot set.
+6. Click the "Prune" button to remove all or one selected visible zoom location(s) in the current visualization. Since pruning
+   cannot be undone, you will be asked to confirm that you wish to prune.
+7. Toggle the "Show Zoom Rectangles" checkbox to hide or show the red rectangles.
+8. Select a different colormap to use for the visualization from the Colormap menu button.

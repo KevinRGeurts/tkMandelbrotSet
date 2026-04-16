@@ -39,10 +39,10 @@ class MandelbrotSetApp(tkApp):
         """
         :param log_level: The logging level to set for the logger, e.g., logging.DEBUG, logging.INFO, etc.
         """
-        help_file_path = sysconfig.get_path('data') + '\\Help\\tkMandelbrotSet\\MandelbrotSetApp_HelpFile.txt'
+        help_file_path = sysconfig.get_path('data') + '\\Help\\tkMandelbrotSet\\MandelbrotSetApp_HelpFile.md'
         menu_dictionary = {'File':{'Open...':self.onFileOpen, 'Save':self.onFileSave, 'Save As...':self.onFileSaveAs, 'Export Plot...':self.onExportPlot, 'Exit':self.onFileExit}, \
                            'Help':{'View Help...':self.onViewHelp,'About...':self.onHelpAbout}}
-        info = AppAboutInfo(name='Mandelbrot Set', version='1.0.0', copyright='2026', author='Kevin R. Geurts',
+        info = AppAboutInfo(name='Mandelbrot Set', version='1.1.0', copyright='2026', author='Kevin R. Geurts',
                             license='MIT License', source='https://github.com/KevinRGeurts/tkMandelbrotSet',
                             help_file=help_file_path)
         super().__init__(parent, title="Mandelbrot Set", menu_dict=menu_dictionary, app_info=info,

@@ -26,7 +26,7 @@ The tkMandelbrotSet package provides a python class MandelbrotSet for generating
 
 ## Requirements
 - matplotlib>=3.10.8: [GitHub](https://github.com/matplotlib/matplotlib), [PyPi](https://pypi.org/project/matplotlib/)
-- tkAppFramework>=0.9.3: [GitHub](https://github.com/KevinRGeurts/tkAppFramework), [PyPi](https://pypi.org/project/tkAppFramework/)
+- tkAppFramework>=0.9.4: [GitHub](https://github.com/KevinRGeurts/tkAppFramework), [PyPi](https://pypi.org/project/tkAppFramework/)
 - UserResponseCollector>=1.1.0: [GitHub](https://github.com/KevinRGeurts/UserResponseCollector), [PyPi](https://pypi.org/project/UserResponseCollector/)
 
 ## Credit where credit is due
