@@ -111,14 +111,20 @@ class MandelbrotSetModel(Model):
         plot_data = self._mandelbrot_set.get_plot_data(normalize=False)
         return plot_data
 
-    def prune(self):
+    def prune(self, index=-1):
         """
-        Prune the zoom tree at the current zoom location.
+        Prune the zoom tree, removing the zoom path forward from the current location (node) as indicated by index parameter,
+        where index parameter is an index into the list of successor nodes of the current node.
+        Note: If index<0 (default value) this method will prune all available successors.
         :return: None
         """
-        # Set the current branch to the branch that will be retained after the prune.
-        self._current_branch = self._zoom_graph.get_nodes_branch(self._current_node)
-        self._zoom_graph.prune(self._current_node)
+        if index < 0:
+            # Set the current branch to the branch that will be retained after the prune.
+            self._current_branch = self._zoom_graph.get_nodes_branch(self._current_node)
+            self._zoom_graph.prune(self._current_node)
+        else:
+            self._zoom_graph.prune_a_successor(self._current_node, index)
+            self._current_branch = self._zoom_graph.get_nodes_branch(self._current_node)
         return None
     
     def home(self):

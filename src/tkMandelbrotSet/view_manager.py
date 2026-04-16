@@ -145,15 +145,22 @@ class tkMandelbrotSetViewManager(tkViewManager):
                 self.getModel().forward(nav_index)
             case 'Prune':
                 # Confirm prune operation, since it cannot be undone.
-                response = askokcancel(title='Confirm Operation', message='Are you sure you wish to prune here? Pruning cannot be undone.')
+                msg_txt = f""
+                if nav_index < 0:
+                    msg_txt = f"Are you sure you wish to prune all zoom locations? Pruning cannot be undone."
+                else:
+                    msg_txt = f"Are you sure you wish to prune zoom location {nav_index}? Pruning cannot be undone."
+                response = askokcancel(title='Confirm Operation', message=msg_txt)
                 if response:
-                    self.getModel().prune()
+                    self.getModel().prune(nav_index)
 
         # Disable/enable appropriate zoom navigation controls based on available zoom directions.
         self._enable_disable_zoom_nav_controls()
         # Populate the Forward zoom navigation menu based on available zoom locations
         avail_zooms = self.getModel().get_current_node_available_zoom_locations()
         self._zoom_nav_widget._populateForwardMenu(avail_zooms)
+        # Populate the Prune menu based on available zoom locations
+        self._zoom_nav_widget._populatePruneMenu(avail_zooms)
 
         # Since the model's corner values may have changed based on the model operation performed in the above match statement,
         # it is required to update the zoom widget's corners as well, otherwise the next call to handle_plot_widget_update() method
@@ -242,6 +249,8 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         for key in self._colormaps:
             self._menu_colormap.add_command(label = str(self._colormaps[key]), command = partial(self.onSelectColormap, key))
         self._selected_colormap = 'nipy_spectral'
+        # Modify the text of the colormap menu button to indicate the currently selected colormap.
+        self._mbtn_colormap['text'] = f"Colormap: {self._selected_colormap}"
 
         # matplotlib RectangleSelector (for interactive zooming)
         self._zoom_rectangle = RectangleSelector(self._ax,
@@ -318,6 +327,8 @@ class MandelbrotSetPlotWidget(ttk.Labelframe, Subject):
         """
         assert(isinstance(key, str) and key in self._colormaps)
         self._selected_colormap = key
+        # Modify the text of the colormap menu button to indicate the currently selected colormap.
+        self._mbtn_colormap['text'] = f"Colormap: {self._selected_colormap}"
         self.notify()
         return None
 
@@ -424,6 +435,7 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         self._possible_moves = ['None', 'Home', 'Back', 'Forward', 'Prune']
         self._requested_move = self._possible_moves[0] # So 'None'
         self._forward_index = 0
+        self._prune_index = 0
 
         self._btn_home= ttk.Button(self, text='Home', command=self.OnHomeButtonClicked)
         self._btn_home.grid(column=0, row=0) # Grid-3
@@ -444,10 +456,14 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         self._menu_forward = tk.Menu(self._mbtn_forward)
         self._mbtn_forward['menu'] = self._menu_forward
 
-        self._btn_prune = ttk.Button(self, text='Prune', command=self.OnPruneButtonClicked)
-        self._btn_prune.grid(column=3, row=0) # Grid-3
+        # Prune menu button
+        self._mbtn_prune = ttk.Menubutton(self, text='Prune', takefocus=1)
+        self._mbtn_prune.grid(column=3, row=0) # Grid-3
         self.columnconfigure(3, weight=1) # Grid-3
         self.rowconfigure(0, weight=1) # Grid-3
+        # Prune menu button menu
+        self._menu_prune = tk.Menu(self._mbtn_forward)
+        self._mbtn_prune['menu'] = self._menu_prune
 
         return None
 
@@ -468,6 +484,26 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
             index += 1
         return None
 
+    def _populatePruneMenu(self, avail_zooms=[]):
+        """
+        Utility function for populating Prune menu with commands.
+        :parameter avail_zooms: List of available zoom locations.
+                                Note: It actually makes no difference what objects are in the list to represent available zooms.
+                                      The only thing that matters is the numnber of objects in the list.
+        :return: None
+        """
+        # Remove any current commands from the menu
+        self._menu_prune.delete(0, self._menu_prune.index(tk.END))
+        # Add new commands to the menu
+        # First command is to prune all zoom locations, so add that command before the loop.
+        index = -1
+        self._menu_prune.add_command(label = f"All Zoom Locations", command = partial(self.onSelectPrune, index))
+        index += 1
+        for zoom in avail_zooms:
+            self._menu_prune.add_command(label = f"Zoom Location {index}", command = partial(self.onSelectPrune, index))
+            index += 1
+        return None
+
     def onSelectForwardZoom(self, index):
         """
         Handle selection of zoom location from Forward menu.
@@ -475,6 +511,15 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         :return: None
         """
         self._set_state('Forward', index)
+        return None
+
+    def onSelectPrune(self, index):
+        """
+        Handle selection of zoom location from Prune menu.
+        :parameter Index: Index (0, 1, 2, ...) of the zoom location selected from the menu, integer
+        :return: None
+        """
+        self._set_state('Prune', index)
         return None
     
     def OnHomeButtonClicked(self):
@@ -505,15 +550,19 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         """
         Set the "move" that the user requests.
         :parameter state_string: One string from list ['None', 'Home', 'Back', 'Forward', 'Prune'], as string
-        :parameter state_index: Integer indicating which forward zoom path was requested, as integer
+        :parameter state_index: Integer indicating which forward zoom path or prune was requested, as integer
         :return: None
         """
         if state_string in self._possible_moves:
             self._requested_move = state_string
-            self._forward_index = state_index
+            if state_string == 'Forward':
+                self._forward_index = state_index
+            elif state_string == 'Prune':
+                self._prune_index = state_index
             self.notify()
             self._requested_move = self._possible_moves[0] # So, 'None'
             self._forward_index = -1
+            self._prune_index = -1
         return None
 
     def get_state(self):
@@ -521,7 +570,12 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
         Returns the "move" that the user requested.
         :return: Tuple (One string from list ['None', 'Home', 'Back', 'Forward', 'Prune'], index of requested forward zoom), as (string, integer)
         """
-        return (self._requested_move, self._forward_index)
+        if self._requested_move == 'Forward':
+            return (self._requested_move, self._forward_index)
+        elif self._requested_move == 'Prune':
+            return (self._requested_move, self._prune_index)
+        else:
+            return (self._requested_move, -1)
 
     def disable(self, back_disabled=True, forward_disabled=True, prune_disabled=True):
         """
@@ -541,9 +595,9 @@ class MandelbrotSetZoomNavigationWidget(ttk.Labelframe, Subject):
             self._mbtn_forward.state(['disabled'])
         else:
             self._mbtn_forward.state(['!disabled'])
-        # Handle prune button
+        # Handle prune menu button
         if prune_disabled:
-            self._btn_prune.state(['disabled'])
+            self._mbtn_prune.state(['disabled'])
         else:
-            self._btn_prune.state(['!disabled'])
+            self._mbtn_prune.state(['!disabled'])
         return None

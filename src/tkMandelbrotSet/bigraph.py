@@ -16,6 +16,8 @@ Exported exceptions:
 
 
 # standard imports
+from pickle import NONE
+from sre_constants import SUCCESS
 from uuid import uuid4
 
 # local imports
@@ -69,6 +71,10 @@ class BigraphNode(object):
         Set the predecessor node of this node.
         :parameter value: Predecessor bigraph node, as BigraphNode object
                           Note: value=None can be used to indicate that this node has no predecessor.
+        NOTE: If this node already has a predessor, then the current predecessor will be replaced by the new predecessor.
+              However, this node will NOT be removed from the successor list of the old predecessor.
+              This setter should be thought of as an "atomic" operation. Other methods may need to be used to maintain
+              the integrity of a bigraph structure that contains this node.
         """
         if value is not None:
             assert(isinstance(value, BigraphNode))
@@ -81,6 +87,63 @@ class BigraphNode(object):
         :return: List of successor nodes, as [BigraphNode objects]
         """
         return list(self._successors)
+
+    def remove_node(self):
+        """
+        Remove this node (self) from the bigraph structure it is part of, by the fact that it has a precdecessor and/or successor(s).
+        If this node has predecessor and successor, then this node will be "elided".
+        If this node has only a predecessor, then simply remove this node from the successors of its predecessor.
+        If this node has only a successor(s), then the successor(s) predecessor will be set to None.
+        :return: None
+        """
+        if self.predecessor is not None:
+            if len(self.get_successors())>0:
+                # -- Elide the node --
+                print(f"Eliding...")
+                pred = self.predecessor
+                # Remove this node from the successors of its predecessor.
+                pred.remove_successor(self)
+                # Get a list of the successors of this node, for later use.
+                sucs = self.get_successors()
+                # Remove all successors of this node.
+                self.remove_successors()
+                # Add the successors of the this node to the successors of the this node's predecessor.
+                for suc in sucs:
+                    pred.successor = suc
+                    # Set the predecessor of the this node's successors to be the predecessor of the this node.
+                    suc.predecessor = pred
+                # Set predecessor of this node to None.
+                self.predecessor = None
+            else:
+                # -- Remove this node, which is a leaf/tip node --
+                # This node has only a predecessor, so just remove this node from the successors of its predecessor.
+                self.predecessor.remove_successor(self)
+                # Set predecessor of this node to None.
+                self.predecessor = None
+        elif len(self.get_successors())>0:
+            # -- Remove this node, which is a root node --
+            # Set the predecessor of the this node's successors to be None.
+            for suc in self.get_successors():
+                suc.predecessor = None
+            # Remove all successors of this node.
+            self.remove_successors()
+        return None
+
+    def remove_successor(self, node=None):
+        """
+        Remove the parameter node from the successors of this node. The predecessor of the parameter node will be set to None.
+        :paramter node: The successor node to remove, as BigraphNode object
+        :return: None
+        """
+        assert(isinstance(node, BigraphNode))
+        succs=self.get_successors()
+        for suc in succs:
+            if suc.nodeID == node.nodeID:
+                # Remove parameter node from the successors of this node
+                self._successors.remove(suc)
+                # Set suc.predecessor to None, so that the removed successor node doesn't continue to link back to this node.
+                suc.predecessor = None 
+        return None
 
     def remove_successors(self):
         """
@@ -113,6 +176,9 @@ class BigraphNode(object):
         """
         Add a successor to the bigraph node if it isn't already a successor of the bigraph node.
         :parameter value: Successor bigraph node, as BigraphNode object
+        NOTE: This method does not set this node as the predecessor of value.
+              This setter should be thought of as an "atomic" operation. Other methods may need to be used to maintain
+              the integrity of a bigraph structure that contains this node.
         """
         if value is not None:
             assert(isinstance(value, BigraphNode))
@@ -138,7 +204,7 @@ class BigraphNode(object):
 
     def insert_node(self, new_node, after=True):
         """
-        Insert a new node at the this node.
+        Insert a new node at the this node. Assumes this node is part of a bigraph structure.
         :parameter new_node: The new BigraphNode object to insert, as BigraphNode object.
         :parameter after: If after=True, the insert new_node as successor of this node. Otherwise insert it as predecessor. As bool.
         :return: None
@@ -261,6 +327,61 @@ class Bigraph(object):
                 result += self.traverse(suc)
         return result
 
+    # TODO: Created this method for a purpose it was ultimately not used for. Not sure if it is actually useful. Although it does have
+    # unittests that it passes. Leave it for now, but consider removing it in the future.
+    def prune_a_branch(self, node=None,  branch=None):
+        """
+        Prune the tree by removing the parameter branch back as far as, but not including, the parameter node.
+        Thus parameter node will become the new tip of the branch. If in working backwards from the tip of the parameter branch,
+        another branch is encountered, then pruning will be stopped at the split, so that other branches above parameter node will
+        remain intact. In that case the pruned branch will be removed from the tree.
+        :parameter node: The node above which the pruning will occur, as BigraphNode object
+        :parameter branch: The branch to prune, as Branch object
+        :return: None
+        """
+        assert(isinstance(node, BigraphNode))
+        assert(isinstance(branch, Branch))
+        pred = None
+        succ = None
+        # Get the tip of the parameter branch.
+        tip = branch.tip_node
+        if (tip.nodeID == node.nodeID):
+            # Parameter node is the tip of the branch, so no traversing is required.
+            pred = node
+            succ = None
+        else:
+            # Traverse downward (from predecessor to predecessor) from the tip to the paramter node, or until a node is
+            # reached that has more than one successor, which indicates a split in the branch.
+            succ = tip
+            pred = tip.predecessor
+            while (pred is not None) and (pred.nodeID != node.nodeID):
+                if len(pred.get_successors()) > 1:
+                    break
+                succ = pred
+                pred = pred.predecessor
+        # Pred is now None, the paramter node, or a node above the parameter node that has more than one successor.
+        # if Pred is None, then parameter node is not on the parameter branch, so do nothing.
+        if (pred is not None):
+            if len(pred.get_successors())==0:
+                # pred is the parameter node, and a tip node, so there are no splits at or above it, so prune the branch back to the parameter node.
+                branch.prune(pred)
+            elif len(pred.get_successors())==1:
+                # pred is the parameter node, and there are no splits at or above it, so prune the branch back to the parameter node.
+                branch.prune(pred)
+            else:
+                # pred is the parameter node, and it is a splitting node, or
+                # pred is above the parameter node, and it is a splitting node.
+                # Prune the branch back to the immediate successor of pred which is on the paramter branch.
+                branch.prune(succ)
+                # This leaves the prunning incomplete because the parameter branch still has one node above pred.
+                # Set the predecessor of this one remaining unpruned node to None.
+                succ.predecessor = None
+                # Remove the one remaining unpruned node from the successors of the splitting node.
+                pred.remove_successor(succ)
+                # Remove branch from the graph. Anything below the splitting node is still part of other branches of the graph.
+                self._branches.remove(branch)
+        return None
+
     def prune(self, node=None):
         """
         Prune the tree by removing all nodes from parameter node successor(s) out to and including the tip nodes of all
@@ -273,7 +394,7 @@ class Bigraph(object):
         :return: None
         """
         assert(isinstance(node, BigraphNode))
-        # Determine all the branches in the graph which containe the parameter node. Only one of these branches will be retained
+        # Determine all the branches in the graph which contain the parameter node. Only one of these branches will be retained
         # in the tree when the prunning is done.
         pruned_branches = []
         for br in self._branches:
@@ -288,6 +409,54 @@ class Bigraph(object):
                 br = pruned_branches[i]
                 br._tip_node = None # To enable BigraphNode garbage collection
                 self._branches.remove(br)
+        return None
+
+    def prune_a_successor(self, prune_node=None, successor_index=0):
+        """
+        Prune the tree by removing all nodes from prune_node._successors[successor_index] out to and including the tip nodes of all
+        successive branches. Thus parameter node will become the new tip of the branch.
+        
+        Note: The tree is guaranteed to be left with at least one branch. If only one branch it left,
+        the branch that will be retained will be the first branch that contains prune_node._successors[successor_index]. 
+        
+        :prune_node: The node above which the pruning will occur, as BigraphNode object
+        :successor_index: The index in self._successors of prune_node which is the starting point of the pruning, as integer
+        :return: None
+        """
+        assert(isinstance(prune_node, BigraphNode))
+        assert(type(successor_index)==int)
+        # Git the successor node at the successor_index in the self._successors of prune_node, which is the starting point of the pruning.
+        successor_node = None
+        if successor_index < len(prune_node.get_successors()):
+            successor_node = prune_node.get_successors()[successor_index]
+        # Determine all the branches in the graph which contain successor_node. Only one of these branches will be retained
+        # in the tree when the prunning is done.
+        pruned_branches = []
+        for br in self._branches:
+            if br.is_node_on_branch(successor_node):
+                pruned_branches.append(br)
+        # Do the pruning
+        if len(pruned_branches) > 0:
+            pruned_branches[0].prune(successor_node)
+        # We still have to remove successor_node from the graph.
+        # successor_node could be the tip of the last remaining branch in the graph. This case is fixed up below,
+        # by restoring the tip node of the last remaining branch to be prune_node.
+        prune_node.remove_successor(successor_node)
+        # Eliminate all pruned orphaned branches from the graph
+        if len(pruned_branches) < len(self._branches):
+            # Eliminating all pruned orphaned branches from the graph will not eliminate the last branch.
+            for br in pruned_branches:
+                br._tip_node = None # To enable BigraphNode garbage collection
+                self._branches.remove(br)
+        else:
+            # Do not eliminate the last branch, because that would leave the graph with no branches, which is a problem.
+            # Note the "1" in the range below, which ensures that the last branch is not eliminated.
+            for i in range(1,len(pruned_branches)):
+                br = pruned_branches[i]
+                br._tip_node = None # To enable BigraphNode garbage collection
+                self._branches.remove(br)
+            # Restore the tip node of the last remaining branch to be prune_node.
+            pruned_branches[0]._tip_node = prune_node
         return None
 
     def __getitem__(self, index):

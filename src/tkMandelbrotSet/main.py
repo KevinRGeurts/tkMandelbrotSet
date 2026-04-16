@@ -36,21 +36,23 @@ def debug():
     Run a debugging scenario.
     :return: None
     """
-    graph = Bigraph()
-    branch1 = Branch(name='branch1')
-    tip1 = branch1.tip_node
     node1 = BigraphNode(payload=1)
-    branch1.add_node(node1)
     node2 = BigraphNode(payload=2)
-    branch1.add_node(node2)
-    graph.add_branch(new_branch=branch1)
-    # branch1: graph.root -> (branch1 original tip node) -> node1 -> node2
-    branch2 = Branch(name='branch2')
-    graph.add_branch(at_node=node1, new_branch=branch2)
-    # branch2: graph.root -> (branch1 original tip node) -> node1 -> branch2.tip_node
-    # Prune the tree at (branch1 original tip node)
-    graph.prune(tip1)
-    assert(len(graph)==1) # Graph has one remaining branch
+    node1.insert_node(new_node=node2, after=True)
+    node3 = BigraphNode(payload=3)
+    node2.insert_node(new_node=node3, after=True)
+    # chain should now look like (from beginning to tip): node1->node2->node3
+    # Now remove node2, eliding it out of the chain
+    node2.remove_node()
+    # chain should now look like (from beginning to tip): node1->node3
+    # node3 should be the successor of node1
+    # self.assertEqual(node3, node1.successor)
+    # node1 should be the predecessor of node3
+    # self.assertEqual(node1, node3.predecessor)
+    # node2 should have no successor or predecessor, since it has been removed from the chain
+    # self.assertEqual(None, node2.successor)
+    # self.assertEqual(None, node2.predecessor)
+
 
 
     return None

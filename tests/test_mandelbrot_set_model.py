@@ -89,11 +89,23 @@ class Test_MandelbrotSetModel(unittest.TestCase):
         act_val = msm._current_node.nodeID
         self.assertEqual(exp_val, act_val)
 
-    def test_prune(self):
+    def test_prune_default(self):
         msm = MandelbrotSetModel()
         msm.set_corners(ul_corner=complex(real=-1.0, imag=1.0), lr_corner=complex(real=0.0, imag=-1.0))
         msm.rewind()
         msm.prune()
+        self.assertRaises(MandelbrotSetNoNextZoomLocation , msm.forward)
+
+    def test_prune_indexed(self):
+        msm = MandelbrotSetModel()
+        msm.set_corners(ul_corner=complex(real=-1.0, imag=1.0), lr_corner=complex(real=0.0, imag=-1.0))
+        msm.rewind()
+        msm.set_corners(ul_corner=complex(real=-0.5, imag=0.5), lr_corner=complex(real=0.0, imag=-1.0))
+        msm.rewind()
+        msm.prune(index=1)
+        msm.forward() # should succeed since index 0 is still available
+        msm.rewind()
+        msm.prune(index=0)
         self.assertRaises(MandelbrotSetNoNextZoomLocation , msm.forward)
 
     def test_forward(self):
